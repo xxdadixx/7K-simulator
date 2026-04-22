@@ -48,8 +48,8 @@ const SUBSTAT_BASES = {
 
 const SET_OPTIONS = ['Avenger', 'Orchestrator', 'Spellweaver', 'Paladin', 'Gatekeeper', 'Assassin', 'Bounty Tracker', 'None'];
 const RING_OPTIONS = [
-  { label: 'None', value: 0 }, { label: 'Ring 4★', value: 5 },
-  { label: 'Ring 5★', value: 7 }, { label: 'Ring 6★', value: 10 }
+  { label: 'None', value: 0 }, { label: 'Ring 4 Star', value: 5 },
+  { label: 'Ring 5 Star', value: 7 }, { label: 'Ring 6 Star', value: 10 }
 ];
 
 // --- HELPER LOGIC FUNCTIONS ---
@@ -90,11 +90,11 @@ const getValidationStatus = (equipments) => {
   });
 
   if (totalRemaining > 0) {
-    return { text: "ยังเหลือออฟรองที่ยังไม่ได้ใช้น้า\n--------------------------\nYou still have unused substats remaining", color: "text-yellow-400" };
+    return { text: "You still have unused substats remaining", color: "text-yellow-400" };
   } else if (totalRemaining < 0) {
-    return { text: "มีออฟรองเกินความเป็นจริงแล้ว!?\n--------------------------\nThere are more substats than possible!?", color: "text-red-500" };
+    return { text: "There are more substats than possible!?", color: "text-red-500" };
   } else {
-    return { text: "ยินดีด้วยคุณบิลด์เสร็จแล้ว\n--------------------------\nYour build is complete!", color: "text-green-400" };
+    return { text: "Your build is complete!", color: "text-green-400" };
   }
 };
 
@@ -211,6 +211,10 @@ export default function Simulator() {
   const [heroDataList, setHeroDataList] = useState([]);
   const [selectedHeroName, setSelectedHeroName] = useState('');
   
+  // States for Loading & Error
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [level, setLevel] = useState(30);
   const [transcend, setTranscend] = useState(5);
   const [ring, setRing] = useState(5);
@@ -229,15 +233,33 @@ export default function Simulator() {
   });
 
   useEffect(() => {
+    console.log("Fetching CSV...");
+    setIsLoading(true);
+    setError(null);
+
     fetch('/DATA.csv')
-      .then(res => res.text())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text();
+      })
       .then(text => {
         const parsed = parseCSVData(text);
         if (parsed.length > 0) {
           setHeroDataList(parsed);
           setSelectedHeroName(parsed[0].name);
+        } else {
+          throw new Error("Parsed data is empty. Check CSV format.");
         }
-      }).catch(err => console.error(err));
+      })
+      .catch(err => {
+        console.error("Error loading CSV:", err);
+        setError(err.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const activeHero = useMemo(() => heroDataList.find(h => h.name === selectedHeroName) || null, [heroDataList, selectedHeroName]);
@@ -290,7 +312,33 @@ export default function Simulator() {
 
   const validationMsg = getValidationStatus(equipment);
 
-  if (!activeHero) return <div className="p-10 text-white font-mono">Loading data...</div>;
+  // Render State Handling
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-white font-mono text-xl animate-pulse">Loading data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="bg-red-900 border-2 border-red-500 p-6 rounded-lg text-white font-mono max-w-lg text-center">
+          <h2 className="text-2xl font-bold mb-4">Error Loading Data</h2>
+          <p className="mb-4">Could not load or parse the DATA.csv file.</p>
+          <div className="bg-slate-950 p-4 rounded text-red-400 text-sm overflow-x-auto text-left">
+            <code>{error}</code>
+          </div>
+          <p className="mt-4 text-sm text-slate-300">Please ensure "DATA.csv" is placed in the "public" folder of your Vite project.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeHero) {
+    return <div className="p-10 text-white font-mono">No character data available.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 p-2 font-mono text-sm">
@@ -320,7 +368,7 @@ export default function Simulator() {
                 <input type="number" className="w-full bg-slate-950 text-white text-center border border-slate-600 outline-none" 
                   value={level} onChange={e => setLevel(Number(e.target.value))} />
               </div>
-              <div className="bg-slate-800 p-1 text-slate-400 text-center">★ Trans</div>
+              <div className="bg-slate-800 p-1 text-slate-400 text-center">Trans</div>
               <div className="p-1">
                 <input type="number" min="0" max="12" className="w-full bg-slate-950 text-white text-center border border-slate-600 outline-none" 
                   value={transcend} onChange={e => setTranscend(Number(e.target.value))} />
@@ -346,7 +394,7 @@ export default function Simulator() {
             <div className="col-span-12 grid grid-cols-12 bg-slate-800 border-b border-slate-700 text-[10px] text-center text-slate-400 font-bold">
               <div className="col-span-2 p-1 border-r border-slate-700">STAT</div>
               <div className="col-span-2 p-1 border-r border-slate-700">BASE VAL</div>
-              <div className="col-span-3 p-1 border-r border-slate-700">★ BONUS</div>
+              <div className="col-span-3 p-1 border-r border-slate-700">BONUS</div>
               <div className="col-span-2 p-1 border-r border-slate-700">POTEN LV</div>
               <div className="col-span-3 p-1">POTEN ADD</div>
             </div>
