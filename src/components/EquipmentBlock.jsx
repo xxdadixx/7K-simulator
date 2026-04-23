@@ -3,7 +3,6 @@ import { SET_OPTIONS, SUBSTAT_BASES } from '../utils/constants';
 import { getSubstatValue, formatStatValue } from '../utils/helpers';
 
 export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
-  // Calculate remaining rolls for this specific equipment piece
   const usedRolls = data.substats.reduce((sum, sub) => sum + sub.rolls, 0);
   const remainingRolls = 5 - usedRolls;
 
@@ -28,7 +27,6 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
     const currentRolls = data.substats[index].rolls;
     const usedByOthers = usedRolls - currentRolls;
     
-    // Enforce the strict limit of 5 total rolls per equipment
     if (usedByOthers + newVal > 5) {
       newVal = 5 - usedByOthers;
     }
@@ -41,82 +39,81 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
   const mainStatKeys = allowedMains ? Object.keys(allowedMains) : Object.keys(SUBSTAT_BASES);
 
   return (
-    <div className="border border-slate-600 bg-slate-900 flex flex-col">
-      {/* Dynamic Header with Usable Substats */}
-      <div className="bg-slate-700 text-white font-bold text-xs p-1 uppercase border border-slate-600 flex justify-between items-center">
-        <span>{title}</span>
-        <span className={remainingRolls === 0 ? "text-slate-400" : "text-green-400"}>
-          USABLE SUBSTATS: {remainingRolls}
+    <div className="flex flex-col h-full">
+      {/* Header - ล้อตามดีไซน์ Header ของกล่องอื่นๆ ใน App.jsx */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-3 border-b border-white/5 flex justify-between items-center">
+        <h2 className="text-white font-bold tracking-widest text-xs">{title}</h2>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${remainingRolls === 0 ? "bg-slate-800 text-slate-400" : "bg-green-900/40 text-green-400"}`}>
+          USABLE ROLLS: {remainingRolls}
         </span>
       </div>
       
-      <div className="grid grid-cols-4 border-b border-slate-700">
-        <div className="bg-slate-800 text-slate-300 text-xs p-1 flex items-center">SET NAME</div>
-        <div className="col-span-3 p-1">
-          <select className="w-full bg-transparent text-white text-xs border border-slate-600 outline-none p-1"
+      {/* Body - ใส่ Padding ให้เท่ากับ Card อื่นๆ จะได้ไม่เบียดขอบ */}
+      <div className="p-4 flex flex-col gap-3">
+        
+        {/* Set Name */}
+        <div className="flex items-center justify-between bg-slate-800/30 border border-slate-700/50 rounded-xl p-2.5">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider w-1/3">Set Name</span>
+          <select className="w-2/3 bg-slate-950 border border-slate-600 rounded-lg outline-none text-xs p-1.5 text-white focus:border-green-400 transition-colors cursor-pointer"
             value={data.set} onChange={(e) => onChange({...data, set: e.target.value})}>
             {SET_OPTIONS.map(s => <option key={s} value={s} className="bg-slate-900">{s}</option>)}
           </select>
         </div>
-      </div>
 
-      <div className="grid grid-cols-4 border-b border-slate-700">
-        <div className="bg-slate-800 text-yellow-500 font-bold text-xs p-1 flex items-center">MAIN STAT</div>
-        <div className="col-span-2 p-1 border-r border-slate-700">
-          <select className="w-full bg-transparent text-white text-xs outline-none p-1"
+        {/* Main Stat */}
+        <div className="flex items-center justify-between bg-slate-800/30 border border-slate-700/50 rounded-xl p-2.5">
+          <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-wider w-1/4">Main</span>
+          <select className="w-1/2 bg-slate-950 border border-slate-600 rounded-lg outline-none text-xs p-1.5 text-white focus:border-yellow-500 transition-colors cursor-pointer"
             value={data.mainStat.type} onChange={(e) => updateMainStat(e.target.value)}>
             {mainStatKeys.map(s => <option key={s} value={s} className="bg-slate-900">{s}</option>)}
           </select>
+          <span className="w-1/4 text-right text-white font-bold text-xs">
+            {formatStatValue(data.mainStat.type, data.mainStat.value)}
+          </span>
         </div>
-        <div className="col-span-1 p-1 flex items-center justify-end pr-2 text-white text-xs font-bold">
-          {formatStatValue(data.mainStat.type, data.mainStat.value)}
-        </div>
-      </div>
 
-      <div className="grid grid-cols-12 bg-slate-800 border-b border-slate-700 text-[10px] text-slate-400 font-bold">
-        <div className="col-span-7 p-1 border-r border-slate-700">SUBSTATS</div>
-        <div className="col-span-2 p-1 border-r border-slate-700 text-center">ROLLS</div>
-        <div className="col-span-3 p-1 text-center">TOTAL VAL</div>
-      </div>
-
-      {data.substats.map((sub, idx) => {
-        const selectedByOthers = data.substats
-          .filter((_, i) => i !== idx)
-          .map(s => s.type);
-
-        return (
-          <div key={idx} className="grid grid-cols-12 border-b border-slate-800 last:border-b-0 text-xs hover:bg-slate-800">
-            <div className="col-span-7 p-1 border-r border-slate-700">
-              <select className="w-full bg-transparent text-slate-200 outline-none text-xs"
-                value={sub.type} onChange={(e) => updateSubstatType(idx, e.target.value)}>
-                {Object.keys(SUBSTAT_BASES).map(s => (
-                  <option 
-                    key={s} 
-                    value={s} 
-                    className="bg-slate-900 disabled:text-slate-600 disabled:bg-slate-950"
-                    disabled={selectedByOthers.includes(s)}
-                  >
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-2 p-1 border-r border-slate-700">
-              <input 
-                type="number" 
-                min="0" 
-                max="5" 
-                className="w-full bg-slate-950 text-slate-200 border border-slate-600 outline-none text-center disabled:opacity-50"
-                value={sub.rolls} 
-                onChange={(e) => updateSubstatRolls(idx, e.target.value)} 
-              />
-            </div>
-            <div className="col-span-3 p-1 flex items-center justify-end pr-2 text-white">
-              {formatStatValue(sub.type, getSubstatValue(sub.type, sub.rolls))}
-            </div>
+        {/* Substats Section */}
+        <div className="pt-1">
+          {/* Header เล็กๆ สำหรับ Substats */}
+          <div className="flex text-[10px] text-slate-500 font-bold uppercase tracking-wider px-2 pb-2">
+            <div className="w-[55%]">Substats</div>
+            <div className="w-[20%] text-center">Rolls</div>
+            <div className="w-[25%] text-right">Value</div>
           </div>
-        );
-      })}
+
+          <div className="flex flex-col gap-1.5">
+            {data.substats.map((sub, idx) => {
+              const selectedByOthers = data.substats.filter((_, i) => i !== idx).map(s => s.type);
+
+              return (
+                <div key={idx} className="flex items-center bg-slate-800/20 border border-slate-700/30 rounded-lg p-1.5 hover:bg-slate-800/50 transition-colors">
+                  <div className="w-[55%] pr-1">
+                    <select className="w-full bg-slate-950 border border-slate-700 rounded-md outline-none text-[11px] p-1.5 text-slate-300 focus:border-white/30 cursor-pointer"
+                      value={sub.type} onChange={(e) => updateSubstatType(idx, e.target.value)}>
+                      {Object.keys(SUBSTAT_BASES).map(s => (
+                        <option key={s} value={s} className="bg-slate-900 disabled:text-slate-600 disabled:bg-slate-950" disabled={selectedByOthers.includes(s)}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-[20%] flex justify-center">
+                    <input 
+                      type="number" min="0" max="5" 
+                      className="w-10 bg-slate-950 border border-slate-600 rounded-md text-center text-[11px] text-white py-1.5 outline-none focus:border-green-400 transition-all disabled:opacity-50"
+                      value={sub.rolls} onChange={(e) => updateSubstatRolls(idx, e.target.value)} 
+                    />
+                  </div>
+                  <div className="w-[25%] text-right text-slate-100 text-[11px] font-bold">
+                    {formatStatValue(sub.type, getSubstatValue(sub.type, sub.rolls))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };
