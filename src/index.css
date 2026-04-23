@@ -1,15 +1,73 @@
 @import "tailwindcss";
 
-/* Keyframes สำหรับขยับแสงออโรร่า */
-@keyframes aurora-flow {
+/* ชุด Keyframes แสง 4 แบบ */
+@keyframes aurora-flow-1 {
   0% {
     background-position: 0% 0%;
     transform: rotate(0deg) scale(1);
   }
+
   50% {
     background-position: 100% 100%;
-    transform: rotate(3deg) scale(1.05);
+    transform: rotate(2deg) scale(1.05);
   }
+
+  100% {
+    background-position: 0% 0%;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes aurora-flow-2 {
+  0% {
+    background-position: 50% 0%;
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    background-position: 50% 100%;
+    transform: translateY(15px) scale(1.1);
+  }
+
+  100% {
+    background-position: 50% 0%;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes aurora-flow-3 {
+  0% {
+    background-position: 0% 50%;
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    background-position: 100% 50%;
+    transform: rotate(5deg) scale(1.15);
+  }
+
+  100% {
+    background-position: 0% 50%;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes aurora-flow-4 {
+  0% {
+    background-position: 0% 0%;
+    transform: rotate(0deg) scale(1);
+  }
+
+  33% {
+    background-position: 100% 0%;
+    transform: rotate(3deg) scale(1.1);
+  }
+
+  66% {
+    background-position: 100% 100%;
+    transform: rotate(-3deg) scale(1.05);
+  }
+
   100% {
     background-position: 0% 0%;
     transform: rotate(0deg) scale(1);
@@ -18,18 +76,27 @@
 
 @layer base {
   :root {
-    /* โทนสี Light Mode */
-    --bg-color: #f5f5f7;
-    --text-main: #1d1d1f;
-    --text-muted: #86868b;
-    --card-bg: rgba(255, 255, 255, 0.65);
-    --card-header: rgba(0, 0, 0, 0.03);
-    --border-color: rgba(0, 0, 0, 0.08);
-    --input-bg: rgba(0, 0, 0, 0.04);
+    /* ปรับพื้นหลังสุดให้เป็นเทาอ่อนสไตล์ Apple (#f2f2f7) เพื่อให้การ์ดขาวเด่นขึ้น */
+    --bg-color: #f2f2f7;
+    --text-main: #1c1c1e;
+    --text-muted: #6e6e73;
+
+    /* เพิ่มความทึบของการ์ดกระจก (จาก 0.40 เป็น 0.82) เพื่อตัดแสงรบกวน อ่านง่าย 100% */
+    --card-bg: rgba(255, 255, 255, 0.70);
+    --card-header: rgba(0, 0, 0, 0.02);
+    --border-color: rgba(0, 0, 0, 0.12);
+    /* ขอบชัดขึ้นนิดนึง */
+    --input-bg: rgba(0, 0, 0, 0.03);
     --input-border: rgba(0, 0, 0, 0.1);
-    --hover-bg: rgba(0, 0, 0, 0.05);
+    --hover-bg: rgba(0, 0, 0, 0.06);
     --accent: #0071e3;
-    --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+
+    /* ปรับเงาให้ดูนุ่มและลึกขึ้น */
+    --glass-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --glass-inner: rgba(255, 255, 255, 0.9);
+
+    /* Tooltip ทึบเกือบ 100% ป้องกันการลายตาเวลา Hover */
+    --tooltip-bg: rgba(255, 255, 255, 0.95);
 
     --color-char: #ff9500;
     --color-equip: #34c759;
@@ -39,10 +106,19 @@
     --color-rare: #007aff;
     --color-normal: #8e8e93;
 
-    /* สี Aurora (Light Mode) */
-    --aurora-1: rgba(52, 199, 89, 0.45);
-    --aurora-2: rgba(0, 122, 255, 0.45);
-    --aurora-3: rgba(175, 82, 222, 0.35);
+    /* เพิ่มความเข้มของเม็ดสี Aurora (จาก 0.20 เป็น 0.50) เพื่อให้สู้กับพื้นหลังขาวได้ */
+    --a1-c1: rgba(52, 199, 89, 0.50);
+    --a1-c2: rgba(0, 122, 255, 0.50);
+
+    --a2-c1: rgba(175, 82, 222, 0.50);
+    --a2-c2: rgba(90, 200, 250, 0.50);
+
+    --a3-c1: rgba(0, 64, 221, 0.45);
+    --a3-c2: rgba(255, 45, 85, 0.45);
+
+    --a4-c1: rgba(255, 59, 48, 0.45);
+    --a4-c2: rgba(255, 149, 0, 0.45);
+    --a4-c3: rgba(52, 199, 89, 0.45);
   }
 
   .dark {
@@ -50,7 +126,7 @@
     --bg-color: #000000;
     --text-main: #f5f5f7;
     --text-muted: #a1a1a6;
-    --card-bg: rgba(28, 28, 30, 0.65);
+    --card-bg: rgba(28, 28, 30, 0.4);
     --card-header: rgba(255, 255, 255, 0.05);
     --border-color: rgba(255, 255, 255, 0.15);
     --input-bg: rgba(255, 255, 255, 0.05);
@@ -58,6 +134,8 @@
     --hover-bg: rgba(255, 255, 255, 0.1);
     --accent: #0a84ff;
     --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --glass-inner: rgba(255, 255, 255, 0.08);
+    --tooltip-bg: rgba(12, 12, 12, 0.85);
 
     --color-char: #ff9f0a;
     --color-equip: #32d74b;
@@ -67,10 +145,19 @@
     --color-rare: #0a84ff;
     --color-normal: #98989d;
 
-    /* สี Aurora (Dark Mode) */
-    --aurora-1: rgba(50, 215, 75, 0.3);
-    --aurora-2: rgba(10, 132, 255, 0.3);
-    --aurora-3: rgba(191, 90, 242, 0.2);
+    /* สี Aurora 4 แบบ (Dark Mode) */
+    --a1-c1: rgba(50, 215, 75, 0.3);
+    --a1-c2: rgba(10, 132, 255, 0.3);
+
+    --a2-c1: rgba(191, 90, 242, 0.25);
+    --a2-c2: rgba(100, 210, 255, 0.3);
+
+    --a3-c1: rgba(10, 132, 255, 0.25);
+    --a3-c2: rgba(255, 55, 95, 0.25);
+
+    --a4-c1: rgba(255, 69, 58, 0.25);
+    --a4-c2: rgba(255, 159, 10, 0.25);
+    --a4-c3: rgba(48, 209, 88, 0.25);
   }
 
   body {
@@ -83,17 +170,46 @@
 }
 
 @layer components {
-  /* เลเยอร์แสงออโรร่า (แบบใหม่ ไม่ง้อ ::before) */
+
+  /* คลาสพื้นฐาน (แชร์การตั้งค่าเบลอและขนาด) */
   .aurora-bg {
     position: absolute;
     inset: -40px;
     filter: blur(40px);
     background-size: 200% 200%;
-    background-image:
-      radial-gradient(circle at 10% 10%, var(--aurora-1) 0%, transparent 50%),
-      radial-gradient(circle at 90% 90%, var(--aurora-2) 0%, transparent 50%),
-      radial-gradient(circle at 50% 50%, var(--aurora-3) 0%, transparent 50%);
-    animation: aurora-flow 8s ease-in-out infinite alternate;
     pointer-events: none;
+  }
+
+  /* แบบที่ 1: สีเขียว/ฟ้า, ช้าๆ, ลื่นไหล */
+  .aurora-style-1 {
+    background-image:
+      radial-gradient(circle at 10% 10%, var(--a1-c1) 0%, transparent 60%),
+      radial-gradient(circle at 90% 90%, var(--a1-c2) 0%, transparent 60%);
+    animation: aurora-flow-1 12s ease-in-out infinite alternate;
+  }
+
+  /* แบบที่ 2: สีม่วง/ฟ้าคราม, แนวตั้ง, เร็วและกระเพื่อม */
+  .aurora-style-2 {
+    background-image:
+      radial-gradient(ellipse at 50% 0%, var(--a2-c1) 0%, transparent 60%),
+      radial-gradient(ellipse at 50% 100%, var(--a2-c2) 0%, transparent 60%);
+    animation: aurora-flow-2 6s linear infinite alternate;
+  }
+
+  /* แบบที่ 3: น้ำเงินเข้ม/บานเย็น, หมุนวนช้าๆ */
+  .aurora-style-3 {
+    background-image:
+      radial-gradient(circle at 80% 20%, var(--a3-c1) 0%, transparent 60%),
+      radial-gradient(circle at 20% 80%, var(--a3-c2) 0%, transparent 60%);
+    animation: aurora-flow-3 15s ease-in-out infinite alternate;
+  }
+
+  /* แบบที่ 4: แดง/ส้ม/เขียว, วูบวาบซับซ้อน */
+  .aurora-style-4 {
+    background-image:
+      radial-gradient(circle at 20% 20%, var(--a4-c1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 50%, var(--a4-c2) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, var(--a4-c3) 0%, transparent 50%);
+    animation: aurora-flow-4 8s cubic-bezier(0.25, 0.1, 0.25, 1) infinite alternate;
   }
 }

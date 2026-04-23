@@ -34,22 +34,6 @@ export const getSubstatValue = (type, rolls) => {
     return base * (rolls + 1);
 };
 
-export const calculateSetBonus = (setsArray) => {
-    const counts = {};
-    setsArray.forEach(s => { if (s !== 'None') counts[s] = (counts[s] || 0) + 1; });
-
-    if (counts['Paladin'] === 4) return "Income Healing Boots 20%";
-    if (counts['Gatekeeper'] === 4) return "Block Damage Reduction 10%";
-    if (counts['Avenger'] === 4) return "Damage Dealt 30%\nBoss Damage 40%";
-    if (counts['Avenger'] >= 2) return "Damage Dealt 15%";
-    if (counts['Assassin'] === 4) return "Ignore Defense 15%";
-    if (counts['Bounty Tracker'] === 4) return "Weakness Hit Damage 35%";
-    if (counts['Spellweaver'] === 4) return "Effect Probability 10%";
-    if (counts['Orchestrator'] === 4) return "Star Battles with 1 turn of Crowd Control Immunity";
-
-    return "-";
-};
-
 export const getValidationStatus = (equipments) => {
     let totalRemaining = 0;
     Object.values(equipments).forEach(eq => {
@@ -57,12 +41,13 @@ export const getValidationStatus = (equipments) => {
         totalRemaining += (5 - sumRolls);
     });
 
+    // คืนค่าเป็นรูปแบบ UI ที่พร้อมนำไปแสดงเป็นป้าย Pill
     if (totalRemaining > 0) {
-        return { text: "You still have unused substats remaining", color: "text-yellow-400" };
+        return { status: 'warning', text: `${totalRemaining} Substats Remaining`, color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20" };
     } else if (totalRemaining < 0) {
-        return { text: "There are more substats than possible!?", color: "text-red-500" };
+        return { status: 'error', text: `Over Limit (${Math.abs(totalRemaining)})`, color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" };
     } else {
-        return { text: "Your build is complete!", color: "text-green-400" };
+        return { status: 'success', text: "Build Complete", color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/20" };
     }
 };
 

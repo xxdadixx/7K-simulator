@@ -28,7 +28,7 @@ const AnimatedStatRow = ({ item, stat, isPercent, textSize = "text-sm" }) => {
   const fmt = (val) => isPercent ? `${val}%` : val.toLocaleString();
 
   return (
-    <div className={`relative group flex justify-between items-center ${textSize} py-2 border-b border-[var(--border-color)] last:border-0 cursor-help px-3 rounded-xl transition-all duration-300 ${isFlashing ? 'bg-[var(--hover-bg)] scale-[1.02] z-10' : 'hover:bg-[var(--hover-bg)] hover:z-50'}`}>
+    <div className={`relative group flex justify-between items-center ${textSize} p-3 mb-2 bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border-color)] shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-2xl transition-all duration-300 ${isFlashing ? 'ring-2 ring-green-500 scale-[1.02] z-10' : 'hover:-translate-y-0.5 hover:shadow-md hover:z-50'}`}>
       <span className={`${item.color} font-medium tracking-wide`}>{item.label}</span>
 
       <div className="flex items-center gap-2">
@@ -41,7 +41,7 @@ const AnimatedStatRow = ({ item, stat, isPercent, textSize = "text-sm" }) => {
       </div>
 
       {stat.details.length > 0 && (
-        <div className="hidden group-hover:block absolute top-full right-0 mt-2 w-64 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] rounded-2xl shadow-2xl p-4 pointer-events-none">
+        <div className="hidden group-hover:block absolute top-full right-0 mt-2 w-64 bg-[var(--tooltip-bg)] backdrop-blur-3xl border border-[var(--border-color)] rounded-2xl shadow-2xl p-4 pointer-events-none z-[100]">
           <div className="text-xs font-semibold text-[var(--text-main)] border-b border-[var(--border-color)] pb-2 mb-3 flex justify-between items-center">
             <span className="uppercase tracking-wider">{item.label}</span>
             <span className="text-[var(--text-muted)] bg-[var(--input-bg)] px-2 py-1 rounded-full border border-[var(--border-color)]">Base: {fmt(stat.base)}</span>
@@ -84,6 +84,23 @@ export default function App() {
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const presetMenuRef = useRef(null);
 
+  const [eqLayout, setEqLayout] = useState('row');
+
+  const eqListConfig = useMemo(() => {
+    const baseConfig = [
+      { title: "Weapon 1", key: "weapon1", allowed: WEAPON_MAIN_VALUES },
+      { title: "Weapon 2", key: "weapon2", allowed: WEAPON_MAIN_VALUES },
+      { title: "Armor 1", key: "armor1", allowed: ARMOR_MAIN_VALUES },
+      { title: "Armor 2", key: "armor2", allowed: ARMOR_MAIN_VALUES }
+    ];
+
+    if (eqLayout === 'grid') {
+      // สลับลำดับเป็น [W1, A1, W2, A2] เพื่อให้ Grid 2 Column แสดงผลตามที่คุณต้องการ
+      return [baseConfig[0], baseConfig[2], baseConfig[1], baseConfig[3]];
+    }
+    return baseConfig;
+  }, [eqLayout]);
+
   const defaultSubstats = () => [
     { type: 'Attack %', rolls: 0 }, { type: 'Defense %', rolls: 0 },
     { type: 'HP %', rolls: 0 }, { type: 'Speed', rolls: 0 }
@@ -114,6 +131,29 @@ export default function App() {
     if (g === 'LEGEND') return 'bg-[var(--color-legend)]/10 border-[var(--color-legend)]/30';
     if (g === 'RARE') return 'bg-[var(--color-rare)]/10 border-[var(--color-rare)]/30';
     return 'bg-[var(--color-normal)]/10 border-[var(--color-normal)]/30';
+  };
+
+  const getElementColorClass = (element) => {
+    const el = element?.toUpperCase();
+    if (el === 'ATTACK') return 'text-red-500';
+    if (el === 'MAGIC') return 'text-blue-500';
+    if (el === 'UNIVERSAL') return 'text-purple-500';
+    if (el === 'DEFENSE') return 'text-amber-700'; // สีน้ำตาล
+    if (el === 'SUPPORT') return 'text-yellow-500';
+    return 'text-[var(--text-main)]';
+  };
+
+  const getTypeColorClass = (type) => {
+    const t = type?.toUpperCase();
+    if (t === 'ATTACK') return 'text-red-500';
+    if (t === 'MAGIC') return 'text-blue-500';
+    return 'text-[var(--text-main)]';
+  };
+
+  const getTransColorClass = (val) => {
+    if (val >= 7) return 'text-red-500';
+    if (val >= 1) return 'text-blue-500'; // สีฟ้า
+    return 'text-[var(--text-main)]';
   };
 
   useEffect(() => {
@@ -227,12 +267,13 @@ export default function App() {
     const SET_BONUS_DATA = {
       'Vanguard': { 2: ['Attack +20%'], 4: ['Attack +45%', 'Effect Hit Rate +20%'] },
       'Guardian': { 2: ['Defense +20%'], 4: ['Defense +45%', 'Effect Resistance +20%'] },
-      'Paladin': { 2: ['HP +17%'], 4: ['HP +40%'] },
-      'Assassin': { 2: ['Crit Rate +15%'], 4: ['Crit Rate +30%'] },
-      'Bounty Tracker': { 2: ['Weakness Hit Chance +15%'], 4: ['Weakness Hit Chance +35%'] },
-      'Gatekeeper': { 2: ['Block Rate +15%'], 4: ['Block Rate +30%'] },
-      'Spellweaver': { 2: ['Effect Hit Rate +17%'], 4: ['Effect Hit Rate +35%'] },
-      'Orchestrator': { 2: ['Effect Resistance +17%'], 4: ['Effect Resistance +35%'] }
+      'Paladin': { 2: ['HP +17%'], 4: ['HP +40%', 'Income Healing Boots 20%'] },
+      'Assassin': { 2: ['Crit Rate +15%'], 4: ['Crit Rate +30%', 'Ignore Defense 15%'] },
+      'Bounty Tracker': { 2: ['Weakness Hit Chance +15%'], 4: ['Weakness Hit Chance +35%', 'Weakness Hit Damage 35%'] },
+      'Gatekeeper': { 2: ['Block Rate +15%'], 4: ['Block Rate +30%', 'Block Damage Reduction 10%'] },
+      'Spellweaver': { 2: ['Effect Hit Rate +17%'], 4: ['Effect Hit Rate +35%', 'Effect Probability 10%'] },
+      'Orchestrator': { 2: ['Effect Resistance +17%'], 4: ['Effect Resistance +35%', 'Star Battles with 1 turn of Crowd Control Immunity'] },
+      'Avenger': { 2: ['Damage Dealt 15%'], 4: ['Damage Dealt 30%', 'Boss Damage 40%'] }
     };
 
     const activeSetDetails = [];
@@ -338,13 +379,14 @@ export default function App() {
     <div className="min-h-screen p-4 md:p-6 lg:p-10 selection:bg-[var(--accent)] selection:text-white transition-colors duration-400">
       <div className="max-w-[1400px] mx-auto space-y-8">
 
-        {/* Top Bar: เมนู Preset และปุ่มเปลี่ยนโหมด */}
-        <div className="flex justify-end gap-3 relative z-[100]">
+        {/* Top Bar: เมนู Preset และปุ่มเปลี่ยนโหมด (อัปเดตเป็น Sticky Floating) */}
+        <div className="sticky top-4 md:top-6 z-[120] flex justify-end gap-3 w-full pointer-events-none">
 
-          <div className="relative" ref={presetMenuRef}>
+          {/* เมนู Dropdown สำหรับ Save/Load Presets */}
+          <div className="relative pointer-events-auto" ref={presetMenuRef}>
             <button
               onClick={() => setShowPresetMenu(!showPresetMenu)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border-color)] shadow-sm hover:scale-105 transition-transform text-sm font-medium text-[var(--text-main)]"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border-color)] shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium text-[var(--text-main)]"
             >
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
               Presets
@@ -399,16 +441,10 @@ export default function App() {
             )}
           </div>
 
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border-color)] shadow-sm hover:scale-105 transition-transform text-sm font-medium text-[var(--text-main)]">
+          <button onClick={() => setIsDarkMode(!isDarkMode)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border-color)] shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium text-[var(--text-main)] pointer-events-auto">
             {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
         </div>
-
-        {validationMsg.text && (
-          <div className="bg-[var(--card-bg)] backdrop-blur-xl border border-red-500/30 rounded-2xl p-4 text-center font-medium text-sm text-red-500 shadow-sm">
-            {validationMsg.text}
-          </div>
-        )}
 
         {/* SECTION 1: HERO & BASE STATS */}
         <div className="flex flex-col xl:flex-row gap-8">
@@ -416,8 +452,8 @@ export default function App() {
           {/* ซ้าย: Hero Profile */}
           <div className="relative z-[60] w-full xl:w-[30%] flex flex-col">
             <div className="absolute inset-0 rounded-3xl shadow-[var(--glass-shadow)] overflow-hidden">
-              <div className="aurora-bg"></div>
-              <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] rounded-3xl transition-colors duration-400"></div>
+              <div className="aurora-bg aurora-style-1"></div>
+              <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
@@ -453,29 +489,59 @@ export default function App() {
                   )}
                 </div>
 
+                {/* แถว Level และ Trans */}
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <label className="text-[11px] text-[var(--text-muted)] font-medium uppercase tracking-wider mb-2 block pl-1">Level</label>
-                    <div className="w-full bg-[var(--input-bg)] text-[var(--text-muted)] text-center border border-[var(--border-color)] rounded-2xl py-3 cursor-not-allowed font-semibold text-sm">30 (MAX)</div>
+                    <div className="w-full bg-[var(--input-bg)] text-red-500 text-center border border-[var(--border-color)] rounded-2xl py-3 cursor-not-allowed font-bold text-sm shadow-[inset_0_1px_1px_var(--glass-inner)]">30 (MAX)</div>
                   </div>
+
                   <div className="flex-1">
-                    <label className="text-[11px] text-yellow-500 font-medium uppercase tracking-wider mb-2 block pl-1">★ Trans</label>
-                    <input type="number" min="0" max="12" className="w-full bg-[var(--input-bg)] text-[var(--text-main)] text-center border border-[var(--input-border)] rounded-2xl py-3 text-sm focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all" value={transcend} onChange={e => setTranscend(Number(e.target.value))} />
+                    <label className="text-[11px] text-[var(--text-muted)] font-medium uppercase tracking-wider mb-2 block pl-1">Trans</label>
+                    <div className="relative">
+                      <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${getTransColorClass(transcend)}`}>★</span>
+                      <input
+                        type="number" min="0" max="12"
+                        className={`w-full bg-[var(--input-bg)] ${getTransColorClass(transcend)} text-center border border-[var(--input-border)] rounded-2xl py-3 pl-6 text-sm font-bold focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all shadow-[inset_0_1px_1px_var(--glass-inner)]`}
+                        value={transcend}
+                        onChange={e => setTranscend(Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* เพิ่ม Accessory Ring เข้ามาตรงนี้ */}
+                <div>
+                  <label className="text-[11px] text-[var(--text-muted)] font-medium uppercase tracking-wider mb-2 block pl-1">Accessory Ring</label>
+                  <div className="relative">
+                    <select
+                      className="w-full bg-[var(--input-bg)] text-[var(--text-main)] border border-[var(--input-border)] rounded-2xl outline-none p-3.5 focus:ring-2 focus:ring-[var(--accent)] transition-all text-sm appearance-none cursor-pointer font-semibold shadow-[inset_0_1px_1px_var(--glass-inner)]"
+                      value={ring}
+                      onChange={e => setRing(Number(e.target.value))}
+                    >
+                      {RING_OPTIONS.map(r => <option key={r.value} value={r.value} className="bg-[var(--bg-color)]">{r.label} (+{r.value}%)</option>)}
+                    </select>
+                    {/* ไอคอนลูกศรลงเพื่อให้ดูเป็น Dropdown ที่สวยงาม */}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
+                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path d="m19 9-7 7-7-7" /></svg>
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex justify-between gap-3 pt-4 border-t border-[var(--border-color)]">
                   <div className="flex-1 bg-[var(--input-bg)] rounded-2xl p-3 text-center border border-[var(--border-color)]">
                     <div className="text-[10px] text-[var(--text-muted)] mb-1 uppercase">Element</div>
-                    <div className="font-semibold text-sm text-[var(--text-main)]">{activeHero.element}</div>
+                    {/* เรียกใช้ฟังก์ชันเปลี่ยนสี Element */}
+                    <div className={`font-bold text-sm ${getElementColorClass(activeHero.element)}`}>{activeHero.element}</div>
                   </div>
                   <div className="flex-1 bg-[var(--input-bg)] rounded-2xl p-3 text-center border border-[var(--border-color)]">
                     <div className="text-[10px] text-[var(--text-muted)] mb-1 uppercase">Type</div>
-                    <div className="font-semibold text-sm text-[var(--text-main)]">{activeHero.type}</div>
+                    {/* เรียกใช้ฟังก์ชันเปลี่ยนสี Type */}
+                    <div className={`font-bold text-sm ${getTypeColorClass(activeHero.type)}`}>{activeHero.type}</div>
                   </div>
                   <div className="flex-1 bg-[var(--input-bg)] rounded-2xl p-3 text-center border border-[var(--border-color)]">
                     <div className="text-[10px] text-[var(--text-muted)] mb-1 uppercase">Grade</div>
-                    <div className={`font-semibold text-sm ${gradeColor}`}>{activeHero.grade}</div>
+                    <div className={`font-bold text-sm ${gradeColor}`}>{activeHero.grade}</div>
                   </div>
                 </div>
               </div>
@@ -485,8 +551,8 @@ export default function App() {
           {/* ขวา: Base Stats & Potentials */}
           <div className="relative z-40 w-full xl:w-[70%] flex flex-col">
             <div className="absolute inset-0 rounded-3xl shadow-[var(--glass-shadow)] overflow-hidden">
-              <div className="aurora-bg"></div>
-              <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] rounded-3xl transition-colors duration-400"></div>
+              <div className="aurora-bg aurora-style-2"></div>
+              <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
             </div>
 
             <div className="relative z-10 flex flex-col h-full">
@@ -507,8 +573,10 @@ export default function App() {
                   return (
                     <div key={statKey} className="flex flex-col md:flex-row md:items-center justify-between bg-[var(--input-bg)] hover:bg-[var(--hover-bg)] transition-colors p-4 rounded-2xl border border-[var(--border-color)] gap-4 md:gap-0">
                       <div className="flex items-center gap-3 w-full md:w-1/4">
-                        <div className={`w-1.5 h-6 rounded-full ${isAtk ? 'bg-orange-500' : isDef ? 'bg-blue-500' : 'bg-green-500'}`}></div>
-                        <span className="font-semibold text-[var(--text-main)]">{label}</span>
+                        {/* เปลี่ยนจุดสี Attack เป็นสีแดง (bg-red-500) */}
+                        <div className={`w-1.5 h-6 rounded-full ${isAtk ? 'bg-red-500' : isDef ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                        {/* เปลี่ยนตัวหนังสือ Attack เป็นสีแดง */}
+                        <span className={`font-bold ${isAtk ? 'text-white-500' : 'text-[var(--text-main)]'}`}>{label}</span>
                       </div>
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-[var(--text-muted)]">BASE</span>
@@ -520,7 +588,52 @@ export default function App() {
                       </div>
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-[var(--text-muted)]">LEVEL</span>
-                        <input type="number" min="0" max="30" className="w-16 bg-[var(--bg-color)] border border-[var(--input-border)] rounded-xl py-2 text-center text-sm text-[var(--text-main)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all" value={potentials[statKey]} onChange={e => setPotentials({ ...potentials, [statKey]: Number(e.target.value) })} />
+
+                        {/* เปลี่ยนจาก Input เป็นปุ่ม Stepper (+/-) */}
+                        <div className="flex items-center bg-[var(--bg-color)] border border-[var(--border-color)] rounded-lg overflow-hidden shadow-sm h-8 w-24">
+
+                          {/* ปุ่ม - (ลดค่า) */}
+                          <button
+                            onClick={() => setPotentials({ ...potentials, [statKey]: Math.max(0, potentials[statKey] - 1) })}
+                            disabled={potentials[statKey] <= 0}
+                            className="w-8 h-full flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--hover-bg)] active:bg-[var(--border-color)] disabled:opacity-20 transition-all cursor-pointer disabled:cursor-not-allowed"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
+                          </button>
+
+                          {/* ตัวเลขตรงกลาง (เปลี่ยนกลับมาเป็น Input ให้พิมพ์ได้ พร้อมซ่อนลูกศรขึ้นลงของเบราว์เซอร์) */}
+                          <input
+                            type="number"
+                            className="flex-1 w-full h-full text-center text-sm font-bold text-[var(--text-main)] border-x border-[var(--border-color)] bg-[var(--input-bg)] focus:outline-none focus:bg-[var(--hover-bg)] transition-colors [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none m-0"
+                            value={potentials[statKey] === 0 ? '' : potentials[statKey]} // แสดงช่องว่างถ้าค่าเป็น 0 เพื่อให้พิมพ์ตัวแรกง่ายขึ้น
+                            placeholder="0"
+                            onChange={(e) => {
+                              // ถ้าลบจนหมดให้เป็น 0
+                              if (e.target.value === '') {
+                                setPotentials({ ...potentials, [statKey]: 0 });
+                                return;
+                              }
+                              // แปลงค่าที่พิมพ์เป็นตัวเลข
+                              let val = parseInt(e.target.value, 10);
+                              if (isNaN(val)) val = 0;
+
+                              // ดักเงื่อนไขล็อกค่า ห้ามต่ำกว่า 0 และห้ามเกิน 30
+                              if (val > 30) val = 30;
+                              if (val < 0) val = 0;
+
+                              setPotentials({ ...potentials, [statKey]: val });
+                            }}
+                          />
+
+                          {/* ปุ่ม + (เพิ่มค่า) */}
+                          <button
+                            onClick={() => setPotentials({ ...potentials, [statKey]: Math.min(30, potentials[statKey] + 1) })}
+                            disabled={potentials[statKey] >= 30}
+                            className="w-8 h-full flex items-center justify-center text-[var(--text-main)] hover:bg-[var(--hover-bg)] active:bg-[var(--border-color)] disabled:opacity-20 transition-all cursor-pointer disabled:cursor-not-allowed"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                          </button>
+                        </div>
                       </div>
                       <div className="w-full md:w-[15%] flex justify-between md:justify-end items-center pr-2">
                         <span className="md:hidden text-[11px] text-[var(--text-muted)]">POTEN</span>
@@ -537,8 +650,8 @@ export default function App() {
         {/* SECTION 2: FINAL SUMMARY */}
         <div className="relative z-50 flex flex-col">
           <div className="absolute inset-0 rounded-3xl shadow-[var(--glass-shadow)] overflow-hidden">
-            <div className="aurora-bg"></div>
-            <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] rounded-3xl transition-colors duration-400"></div>
+            <div className="aurora-bg aurora-style-3"></div>
+            <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
           </div>
 
           <div className="relative z-10 flex flex-col h-full">
@@ -547,54 +660,51 @@ export default function App() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-[var(--border-color)]">
               <div className="p-6 space-y-2">
-                {[{ label: 'Attack', color: 'text-orange-500', key: 'atk' }, { label: 'Defense', color: 'text-blue-500', key: 'def' }, { label: 'HP', color: 'text-green-500', key: 'hp' }, { label: 'Speed', color: 'text-yellow-500', key: 'spd' }].map(item => (
+                {[{ label: 'Attack', color: 'text-red-500', key: 'atk' }, { label: 'Defense', color: 'text-blue-500', key: 'def' }, { label: 'HP', color: 'text-green-500', key: 'hp' }, { label: 'Speed', color: 'text-yellow-500', key: 'spd' }].map(item => (
                   <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={false} textSize="text-[15px]" />
                 ))}
               </div>
               <div className="p-6 space-y-2">
-                {[{ label: 'Crit Rate', color: 'text-red-500', key: 'critRate' }, { label: 'Crit Damage', color: 'text-red-500', key: 'critDmg' }, { label: 'Weakness Hit', color: 'text-purple-500', key: 'weakness' }, { label: 'Block Rate', color: 'text-blue-400', key: 'block' }].map(item => (
+                {[{ label: 'Crit Rate', color: 'text-red-500', key: 'critRate' }, { label: 'Crit Damage', color: 'text-red-500', key: 'critDmg' }, { label: 'Weakness Hit', color: 'text-purple-500', key: 'weakness' }].map(item => (
                   <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-sm" />
                 ))}
               </div>
               <div className="p-6 space-y-2">
-                {[{ label: 'Dmg Reduction', color: 'text-teal-500', key: 'dmgReduc' }, { label: 'Effect Hit', color: 'text-cyan-500', key: 'effHit' }, { label: 'Effect Res', color: 'text-cyan-500', key: 'effRes' }].map(item => (
+                {[{ label: 'Block Rate', color: 'text-blue-400', key: 'block' }, { label: 'Dmg Reduction', color: 'text-blue-400', key: 'dmgReduc' }, { label: 'Effect Hit', color: 'text-cyan-500', key: 'effHit' }, { label: 'Effect Res', color: 'text-cyan-500', key: 'effRes' }].map(item => (
                   <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-sm" />
                 ))}
               </div>
 
-              {/* === ส่วนควบคุมด้านขวาสุด (Ring และ Set Bonus UI ใหม่) === */}
-              <div className="p-6 flex flex-col gap-6 justify-center">
-                <div>
-                  <label className="text-[11px] text-[var(--text-muted)] font-medium uppercase tracking-wider mb-2 block pl-1">Accessory Ring</label>
-                  <select className="w-full bg-[var(--input-bg)] text-[var(--text-main)] border border-[var(--input-border)] rounded-2xl outline-none p-3.5 focus:ring-2 focus:ring-[var(--accent)] transition-all text-sm appearance-none cursor-pointer" value={ring} onChange={e => setRing(Number(e.target.value))}>
-                    {RING_OPTIONS.map(r => <option key={r.value} value={r.value} className="bg-[var(--bg-color)]">{r.label} (+{r.value}%)</option>)}
-                  </select>
-                </div>
-
-                {/* กล่องแสดง Set Bonus รูปแบบใหม่ */}
-                <div className="flex-1 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-3 flex flex-col shadow-inner overflow-hidden relative">
-                  <label className="text-[10px] text-[var(--text-muted)] font-medium uppercase tracking-wider mb-2 block text-center">Active Set Bonus</label>
+              {/* คอลัมน์ที่ 4: แสดงผล Set Bonus เท่านั้น */}
+              <div className="p-6 flex flex-col h-full">
+                {/* กล่องแสดง Set Bonus ที่ขยายเต็มพื้นที่ช่องขวา */}
+                <div className="flex-1 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-2xl p-4 flex flex-col shadow-inner relative overflow-hidden">
+                  <label className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest mb-4 block text-center">Active Set Bonus</label>
 
                   {finalStats.activeSetDetails && finalStats.activeSetDetails.length > 0 ? (
-                    <div className="w-full space-y-2 overflow-y-auto custom-scrollbar flex-1 pb-1 pr-1">
+                    <div className="w-full space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
                       {finalStats.activeSetDetails.map((set, idx) => (
-                        <div key={idx} className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded-xl p-2.5 flex flex-col gap-1 text-left relative overflow-hidden shadow-sm">
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-set)]"></div>
-                          <div className="flex justify-between items-center pl-1.5">
-                            <span className="font-bold text-xs text-[var(--text-main)]">{set.name}</span>
-                            <span className="text-[9px] font-bold bg-[var(--color-set)]/10 text-[var(--color-set)] px-2 py-0.5 rounded-full border border-[var(--color-set)]/20">{set.count}-Set</span>
+                        <div key={idx} className="bg-[var(--card-bg)] backdrop-blur-xl border border-[var(--border-color)] shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-2xl p-3.5 flex flex-col gap-1.5 text-left relative overflow-hidden transition-all hover:scale-[1.02]">
+                          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[var(--color-set)]"></div>
+                          <div className="flex justify-between items-center pl-2">
+                            <span className="font-bold text-sm text-[var(--text-main)] uppercase tracking-tight">{set.name}</span>
+                            <span className="text-[10px] font-bold bg-[var(--color-set)]/10 text-[var(--color-set)] px-2.5 py-1 rounded-full border border-[var(--color-set)]/20">{set.count}-Set</span>
                           </div>
-                          <div className="pl-1.5 flex flex-col mt-0.5">
+                          <div className="pl-2 flex flex-col mt-1 space-y-1">
                             {set.effects.map((eff, i) => (
-                              <span key={i} className="text-[10px] font-medium text-[var(--accent)] leading-tight">• {eff}</span>
+                              <span key={i} className="text-[11px] font-bold text-[var(--accent)] leading-tight flex items-center gap-1.5">
+                                <div className="w-1 h-1 rounded-full bg-[var(--accent)]"></div>
+                                {eff}
+                              </span>
                             ))}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                      <span className="text-[var(--text-muted)] font-semibold text-xs">No Active Set</span>
+                    <div className="flex-1 flex flex-col items-center justify-center gap-2 opacity-40">
+                      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m8 4v10M4 7v10l8 4" /></svg>
+                      <span className="text-[var(--text-muted)] font-bold text-[10px] uppercase tracking-widest">No Active Set</span>
                     </div>
                   )}
                 </div>
@@ -603,27 +713,79 @@ export default function App() {
           </div>
         </div>
 
-        {/* SECTION 3: EQUIPMENT SLOTS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pt-4">
-          {[
-            { title: "Weapon 1", key: "weapon1", allowed: WEAPON_MAIN_VALUES },
-            { title: "Weapon 2", key: "weapon2", allowed: WEAPON_MAIN_VALUES },
-            { title: "Armor 1", key: "armor1", allowed: ARMOR_MAIN_VALUES },
-            { title: "Armor 2", key: "armor2", allowed: ARMOR_MAIN_VALUES }
-          ].map((eq) => (
-            <div key={eq.key} className="relative flex flex-col hover:-translate-y-1 transition-transform duration-300">
-              <div className="absolute inset-0 rounded-3xl shadow-[var(--glass-shadow)] overflow-hidden">
-                <div className="aurora-bg"></div>
-                <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] rounded-3xl transition-colors duration-400"></div>
-              </div>
+        {/* ส่วนหัวของ Section 3 พร้อม Status Pill และ ปุ่มเลือก Layout */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-2 gap-4 pb-2">
 
-              <div className="relative z-10 flex flex-col h-full">
-                <EquipmentBlock title={eq.title} data={equipment[eq.key]} allowedMains={eq.allowed} onChange={v => setEquipment({ ...equipment, [eq.key]: v })} />
-              </div>
+          <div className="flex items-center gap-4">
+            <h2 className="text-[var(--text-muted)] font-semibold tracking-widest text-xs uppercase">Equipment Slots</h2>
+
+            {/* === ป้ายสถานะแบบใหม่ (ย้ายมาจากข้างบน) === */}
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-sm ${validationMsg.bg} ${validationMsg.border} ${validationMsg.color}`}>
+              {/* ไอคอนติ๊กถูก (กรณี Complete) */}
+              {validationMsg.status === 'success' && (
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              )}
+              {/* ไอคอนเตือน (กรณีเหลือค่าให้อัปเกรด) */}
+              {validationMsg.status === 'warning' && (
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m-3-9h6l3 3v6l-3 3H9l-3-3V9l3-3z" /></svg>
+              )}
+              {/* ไอคอนตกใจ (กรณีอัปเกรดเกิน) */}
+              {validationMsg.status === 'error' && (
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              )}
+              <span className="text-[10px] font-bold uppercase tracking-wider">{validationMsg.text}</span>
             </div>
-          ))}
-        </div>
+          </div>
 
+          {/* ปุ่มสลับ Layout 1 ROW / 2x2 GRID (โค้ดเดิมของคุณ) */}
+          <div className="flex bg-[var(--input-bg)] p-1 rounded-xl border border-[var(--border-color)] gap-1">
+            <button
+              onClick={() => setEqLayout('row')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${eqLayout === 'row' ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+            >
+              1 ROW
+            </button>
+            <button
+              onClick={() => setEqLayout('grid')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${eqLayout === 'grid' ? 'bg-[var(--accent)] text-white shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
+            >
+              2x2 GRID
+            </button>
+          </div>
+
+        </div>
+        {/* Container ของอุปกรณ์ที่มีการปรับ Layout แบบ Dynamic */}
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${eqLayout === 'row' ? 'xl:grid-cols-4' : 'xl:grid-cols-2 max-w-4xl mx-auto'} gap-6 pt-2`}>
+
+          {/* เปลี่ยนจาก Array ก้อนเดิมมาใช้ eqListConfig ที่สลับตำแหน่งเรียบร้อยแล้ว */}
+          {eqListConfig.map((eq, idx) => {
+
+            // Array สำหรับสลับแสงออโรร่าให้แต่ละกล่อง
+            const auroraClasses = ['aurora-style-4', 'aurora-style-1', 'aurora-style-2', 'aurora-style-3'];
+
+            return (
+              <div key={eq.key} className="relative flex flex-col hover:-translate-y-1 transition-transform duration-300">
+
+                {/* Layer 1: พื้นหลังและแสงออโรร่า */}
+                <div className="absolute inset-0 rounded-3xl shadow-[var(--glass-shadow)] overflow-hidden">
+                  <div className={`aurora-bg ${auroraClasses[idx]}`}></div>
+                  <div className="absolute inset-0 bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--border-color)] shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
+                </div>
+
+                {/* Layer 2: เนื้อหา */}
+                <div className="relative z-10 flex flex-col h-full">
+                  <EquipmentBlock
+                    title={eq.title}
+                    data={equipment[eq.key]}
+                    allowedMains={eq.allowed}
+                    onChange={v => setEquipment({ ...equipment, [eq.key]: v })}
+                  />
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
