@@ -25,12 +25,6 @@ export const ARMOR_MAIN_VALUES = {
     'Effect Resistance': 30
 };
 
-export const ACC_MAIN_VALUES = {
-    'Attack %': 28, 'Attack Flat': 240, 'Defense %': 28, 'Defense Flat': 160,
-    'HP %': 28, 'HP Flat': 850, 'Speed': 24, 'Crit Rate': 24, 'Crit Damage': 36,
-    'Weakness Hit Chance': 28, 'Block Rate': 24, 'Effect Hit Rate': 30, 'Effect Resistance': 30
-};
-
 export const SUBSTAT_BASES = {
     'Attack %': 5, 'Attack Flat': 50, 'Defense %': 5, 'Defense Flat': 30,
     'HP %': 5, 'HP Flat': 180, 'Speed': 4, 'Crit Rate': 4, 'Crit Damage': 6,

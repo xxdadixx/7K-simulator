@@ -4,54 +4,55 @@ import { parseCSVData, getTranscendBonus, getSubstatValue, calculateSetBonus, ge
 import { GridHeader } from './components/GridHeader';
 import { EquipmentBlock } from './components/EquipmentBlock';
 
-// คอมโพเนนต์สำหรับแสดงแถวสเตตัสแต่ละบรรทัด พร้อมเอฟเฟกต์แสงกระพริบเมื่อค่าเปลี่ยน
-const AnimatedStatRow = ({ item, stat, isPercent }) => {
-  const total = stat.base + stat.totalChar + stat.totalEquip;
+// คอมโพเนนต์สำหรับแสดงแถวสเตตัส (ปรับให้ดูนุ่มนวลขึ้น ไม่มีเส้นใต้แข็งๆ)
+const AnimatedStatRow = ({ item, stat, isPercent, textSize = "text-sm" }) => {
+  const total = stat ? (stat.base + (stat.totalChar || 0) + (stat.totalEquip || 0)) : 0;
+  
   const [isFlashing, setIsFlashing] = useState(false);
-
-  // useRef ใช้สำหรับจำค่าสเตตัสก่อนหน้า เพื่อเอามาเทียบว่าค่าเปลี่ยนไปหรือยัง
   const prevTotal = useRef(total);
 
   useEffect(() => {
-    // ถ้าสเตตัสปัจจุบัน ไม่เท่ากับ สเตตัสก่อนหน้า = มีการอัพเกรด!
+    if (!stat) return; 
+    
     if (prevTotal.current !== total) {
       setIsFlashing(true);
-      const timer = setTimeout(() => setIsFlashing(false), 500); // แสงวาบ 0.5 วินาที
-      prevTotal.current = total; // จำค่าใหม่เอาไว้
+      const timer = setTimeout(() => setIsFlashing(false), 500); 
+      prevTotal.current = total; 
       return () => clearTimeout(timer);
     }
-  }, [total]);
+  }, [total, stat]);
 
-  // ฟังก์ชันช่วยจัดรูปแบบตัวเลข (เติม % หรือใส่ลูกน้ำ)
+  if (!stat) return null;
+
   const fmt = (val) => isPercent ? `${val}%` : val.toLocaleString();
 
   return (
-    <div className={`relative group flex justify-between items-center text-sm border-b border-slate-700 pb-1 last:border-b-0 cursor-help px-1 rounded transition-all duration-300 ${isFlashing ? 'bg-green-900/40 scale-[1.02] border-transparent z-10' : ''}`}>
-      <span className={`${item.color} font-bold`}>{item.label}</span>
-
-      <div className="flex items-center gap-1">
-        {/* ตัวเลขจะเรืองแสงสีเขียวสว่างเมื่อค่าเปลี่ยน */}
-        <span className={`font-bold transition-colors duration-300 ${isFlashing ? 'text-green-300 drop-shadow-[0_0_8px_rgba(74,222,128,1)]' : 'text-white'}`}>
+    <div className={`relative group flex justify-between items-center ${textSize} py-1.5 border-b border-white/5 last:border-0 cursor-help px-2 rounded transition-all duration-300 ${isFlashing ? 'bg-green-900/40 scale-[1.02] border-transparent z-10 shadow-lg' : 'hover:bg-slate-800/50'}`}>
+      <span className={`${item.color} font-bold tracking-wide`}>{item.label}</span>
+      
+      <div className="flex items-center gap-1.5">
+        <span className={`font-bold transition-colors duration-300 ${isFlashing ? 'text-green-300 drop-shadow-[0_0_8px_rgba(74,222,128,1)]' : 'text-slate-100'}`}>
           {fmt(total)}
         </span>
-
-        {stat.totalChar > 0 && <span className="text-yellow-300 text-[10px] font-bold">(+{fmt(stat.totalChar)})</span>}
-        {stat.totalEquip > 0 && <span className="text-green-400 text-[10px] font-bold">(+{fmt(stat.totalEquip)})</span>}
+        
+        {stat.totalChar > 0 && <span className="text-yellow-300 text-[10px] font-bold bg-yellow-900/30 px-1 rounded">(+{fmt(stat.totalChar)})</span>}
+        {stat.totalEquip > 0 && <span className="text-green-400 text-[10px] font-bold bg-green-900/30 px-1 rounded">(+{fmt(stat.totalEquip)})</span>}
       </div>
 
-      {/* Tooltip Box (ทำงานตอนเอาเมาส์ชี้) */}
       {stat.details.length > 0 && (
-        <div className="hidden group-hover:block absolute top-full right-0 mt-1 w-56 bg-slate-950 border border-slate-500 rounded shadow-2xl p-2 z-50 pointer-events-none">
-          <div className="text-[11px] font-bold text-white border-b border-slate-700 pb-1 mb-1 flex justify-between">
-            <span>{item.label} Breakdown</span>
-            <span className="text-slate-400">Base: {fmt(stat.base)}</span>
+        <div className="hidden group-hover:block absolute top-full right-0 mt-1 w-56 bg-slate-900 border border-slate-600 rounded-lg shadow-2xl p-3 z-50 pointer-events-none">
+          <div className="text-[11px] font-bold text-white border-b border-slate-700 pb-2 mb-2 flex justify-between items-center">
+            <span className="text-slate-300 uppercase">{item.label}</span>
+            <span className="text-slate-400 bg-slate-950 px-2 py-0.5 rounded-full">Base: {fmt(stat.base)}</span>
           </div>
-          {stat.details.map((d, i) => (
-            <div key={i} className={`flex justify-between text-[10px] ${d.color} leading-tight py-[2px]`}>
-              <span>{d.label}</span>
-              <span className="font-bold">+{fmt(d.value)}</span>
-            </div>
-          ))}
+          <div className="space-y-1">
+            {stat.details.map((d, i) => (
+              <div key={i} className={`flex justify-between text-[10px] ${d.color} leading-tight`}>
+                <span>{d.label}</span>
+                <span className="font-bold">+{fmt(d.value)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -61,13 +62,10 @@ const AnimatedStatRow = ({ item, stat, isPercent }) => {
 export default function App() {
   const [heroDataList, setHeroDataList] = useState([]);
   const [selectedHeroName, setSelectedHeroName] = useState('');
-
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [transcend, setTranscend] = useState(6);
   const [ring, setRing] = useState(5);
-
   const [potentials, setPotentials] = useState({ atk: 0, def: 0, hp: 0 });
 
   const defaultSubstats = () => [
@@ -78,26 +76,10 @@ export default function App() {
   ];
 
   const [equipment, setEquipment] = useState({
-    weapon1: {
-      set: 'None',
-      mainStat: { type: 'Attack %', value: 0 },
-      substats: defaultSubstats()
-    },
-    weapon2: {
-      set: 'None',
-      mainStat: { type: 'Attack %', value: 0 },
-      substats: defaultSubstats()
-    },
-    armor1: {
-      set: 'None',
-      mainStat: { type: 'Defense %', value: 0 },
-      substats: defaultSubstats()
-    },
-    armor2: {
-      set: 'None',
-      mainStat: { type: 'Defense %', value: 0 },
-      substats: defaultSubstats()
-    }
+    weapon1: { set: 'None', mainStat: { type: 'Attack %', value: 0 }, substats: defaultSubstats() },
+    weapon2: { set: 'None', mainStat: { type: 'Attack %', value: 0 }, substats: defaultSubstats() },
+    armor1: { set: 'None', mainStat: { type: 'Defense %', value: 0 }, substats: defaultSubstats() },
+    armor2: { set: 'None', mainStat: { type: 'Defense %', value: 0 }, substats: defaultSubstats() }
   });
 
   useEffect(() => {
@@ -196,9 +178,7 @@ export default function App() {
 
     const breakdown = {
       atk: {
-        base: activeHero.baseAtk,
-        totalChar: (304 * 2) + tAtk + pAtk,
-        totalEquip: totals['Attack Flat'] + atkPctVal + atkSetVal + atkRingVal,
+        base: activeHero.baseAtk, totalChar: (304 * 2) + tAtk + pAtk, totalEquip: totals['Attack Flat'] + atkPctVal + atkSetVal + atkRingVal,
         details: [
           { label: '[Char] Level Base Bonus', value: 304 * 2, color: 'text-yellow-300' },
           { label: '[Char] Transcend', value: tAtk, color: 'text-yellow-300' },
@@ -210,9 +190,7 @@ export default function App() {
         ].filter(d => d.value > 0)
       },
       def: {
-        base: activeHero.baseDef,
-        totalChar: (189 * 2) + tDef + pDef,
-        totalEquip: totals['Defense Flat'] + defPctVal + defSetVal + defRingVal,
+        base: activeHero.baseDef, totalChar: (189 * 2) + tDef + pDef, totalEquip: totals['Defense Flat'] + defPctVal + defSetVal + defRingVal,
         details: [
           { label: '[Char] Level Base Bonus', value: 189 * 2, color: 'text-yellow-300' },
           { label: '[Char] Transcend', value: tDef, color: 'text-yellow-300' },
@@ -224,9 +202,7 @@ export default function App() {
         ].filter(d => d.value > 0)
       },
       hp: {
-        base: activeHero.baseHp,
-        totalChar: (1079 * 2) + tHp + pHp,
-        totalEquip: totals['HP Flat'] + hpPctVal + hpSetVal + hpRingVal,
+        base: activeHero.baseHp, totalChar: (1079 * 2) + tHp + pHp, totalEquip: totals['HP Flat'] + hpPctVal + hpSetVal + hpRingVal,
         details: [
           { label: '[Char] Level Base Bonus', value: 1079 * 2, color: 'text-yellow-300' },
           { label: '[Char] Transcend', value: tHp, color: 'text-yellow-300' },
@@ -299,236 +275,242 @@ export default function App() {
     };
 
     return {
-      tAtk, tDef, tHp,   // ส่งค่า Transcend กลับไปให้ตารางบน
-      pAtk, pDef, pHp,   // ส่งค่า Potential กลับไปให้ตารางบน
+      tAtk, tDef, tHp,
+      pAtk, pDef, pHp,
       breakdown,
       activeSetBonus: calculateSetBonus(eqList)
     };
   }, [activeHero, potentials, equipment, ring, transcend]);
 
-  const [isUpgrading, setIsUpgrading] = useState(false);
-
-  // เอฟเฟกต์จะทำงานทุกครั้งที่ finalStats มีการคำนวณค่าใหม่
-  useEffect(() => {
-    if (!finalStats) return;
-
-    // ใช้ setTimeout ครอบไว้เพื่อไม่ให้ setState ทำงาน Synchronous ทันที (แก้ Error ESLint)
-    const startTimer = setTimeout(() => {
-      setIsUpgrading(true);
-    }, 10); // ดีเลย์แค่ 10ms (มองไม่เห็นด้วยตาเปล่า)
-
-    // ตั้งเวลาให้แสงดับลง
-    const stopTimer = setTimeout(() => {
-      setIsUpgrading(false);
-    }, 400);
-
-    // ล้าง Timer ออกเมื่อ Component ถูกลบหรือรันใหม่
-    return () => {
-      clearTimeout(startTimer);
-      clearTimeout(stopTimer);
-    };
-  }, [finalStats]);
-
   const validationMsg = getValidationStatus(equipment);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-white font-mono text-xl animate-pulse">Loading data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="bg-red-900 border-2 border-red-500 p-6 rounded-lg text-white font-mono max-w-lg text-center">
-          <h2 className="text-2xl font-bold mb-4">Error Loading Data</h2>
-          <div className="bg-slate-950 p-4 rounded text-red-400 text-sm overflow-x-auto text-left mb-4">
-            <code>{error}</code>
-          </div>
-          <p className="text-sm text-slate-300">Please ensure "DATA.csv" is in the "public" folder.</p>
-        </div>
-      </div>
-    );
-  }
-
+  if (isLoading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading...</div>;
+  if (error) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-500">{error}</div>;
   if (!activeHero) return <div className="p-10 text-white font-mono">No character data available.</div>;
 
   const gradeColor = activeHero.grade === 'LEGEND' ? 'text-yellow-400' : activeHero.grade === 'RARE' ? 'text-blue-400' : 'text-white';
-
+  
   const getRoleColor = (roleStr) => {
     const role = (roleStr || '').toUpperCase();
     if (role.includes('ATTACK')) return 'text-red-400';
     if (role.includes('MAGIC')) return 'text-purple-400';
     if (role.includes('DEFENSE')) return 'text-blue-400';
     if (role.includes('SUPPORT')) return 'text-green-400';
-    return 'text-white'; // สีเริ่มต้นถ้าหาไม่เจอ
+    return 'text-white';
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-300 p-2 font-mono text-sm">
-      <div className="max-w-7xl mx-auto space-y-2">
+    <div className="min-h-screen bg-slate-950 text-slate-300 p-4 md:p-6 lg:p-8 font-mono text-sm selection:bg-yellow-500/30">
+      <div className="max-w-[1400px] mx-auto space-y-6">
 
-        {/* VALIDATION MESSAGE */}
-        <div className={`border border-slate-700 bg-slate-900 p-3 text-center whitespace-pre-line font-bold text-xs ${validationMsg.color}`}>
-          {validationMsg.text}
-        </div>
+        {/* Validation Warning */}
+        {validationMsg.text && (
+          <div className={`border rounded-lg p-3 text-center font-bold text-xs shadow-lg ${validationMsg.color.replace('border-red-500', 'border-red-500/50').replace('bg-slate-900', 'bg-slate-900/80 backdrop-blur')}`}>
+            {validationMsg.text}
+          </div>
+        )}
 
-        {/* TOP SECTION: Character Setup & Base Stats */}
-        <div
-          className={`grid grid-cols-1 md:grid-cols-4 transition-all duration-500 ${isUpgrading
-            ? 'border-green-400 bg-green-900/30 shadow-[0_0_25px_rgba(74,222,128,0.3)] scale-[1.01]'
-            : 'border border-slate-600 bg-slate-900 shadow-none scale-100'
-            }`}
-        >
-
-          <div className="lg:col-span-4 border-r border-slate-600 flex flex-col">
-            <GridHeader title="CHARACTER SETUP" />
-            <div className="grid grid-cols-3 gap-0 border-b border-slate-700">
-              <div className="bg-slate-800 p-1 text-xs text-slate-400 flex items-center">Name</div>
-              <div className="col-span-2 p-1">
-                {/* 1. ใส่สีให้ Dropdown เลือกชื่อตัวละคร */}
-                <select className={`w-full bg-slate-950 border border-slate-600 outline-none text-xs p-1 font-bold ${gradeColor}`}
+        {/* ==========================================
+            SECTION 1: HERO & BASE STATS
+            ========================================== */}
+        <div className="flex flex-col xl:flex-row gap-6">
+          
+          {/* ซ้าย: Hero Profile (ดีไซน์ใหม่) */}
+          <div className="w-full xl:w-[30%] bg-slate-900/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-xl flex flex-col overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-3 border-b border-white/5">
+              <h2 className="text-white font-bold tracking-widest text-center text-xs">HERO SETUP</h2>
+            </div>
+            
+            <div className="p-5 flex flex-col gap-5">
+              {/* Name Dropdown */}
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 block pl-1">Select Hero</label>
+                <select className={`w-full bg-slate-950 border border-slate-700 rounded-xl outline-none text-base p-3 font-bold ${gradeColor} shadow-inner focus:border-yellow-500 transition-all cursor-pointer`}
                   value={selectedHeroName} onChange={e => setSelectedHeroName(e.target.value)}>
-                  {heroDataList.map(h => {
-                    // ทำให้รายชื่อใน Dropdown มีสีตาม Grade ด้วย
-                    const optColor = h.grade === 'LEGEND' ? 'text-yellow-400' : h.grade === 'RARE' ? 'text-blue-400' : 'text-white';
-                    return <option key={h.name} value={h.name} className={`bg-slate-900 ${optColor}`}>{h.name}</option>
-                  })}
+                  {heroDataList.map(h => (
+                    <option key={h.name} value={h.name} className={`bg-slate-900 ${h.grade === 'LEGEND' ? 'text-yellow-400' : 'text-blue-400'}`}>
+                      {h.name}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
-            <div className="grid grid-cols-4 gap-0 border-b border-slate-700 text-xs">
-              <div className="bg-slate-800 p-1 text-slate-400 text-center flex items-center justify-center">Level</div>
-              <div className="p-1 border-r border-slate-700 flex items-center">
-                {/* ล็อกช่อง Level เป็นข้อความตายตัว 30 (MAX) */}
-                <div className="w-full bg-slate-900 text-slate-500 text-center border border-slate-700 py-[2px] cursor-not-allowed font-bold">
-                  30 (MAX)
-                </div>
-              </div>
-              <div className="bg-slate-800 p-1 text-slate-400 text-center flex items-center justify-center">Trans</div>
-              <div className="p-1">
-                <input type="number" min="0" max="12" className="w-full bg-slate-950 text-white text-center border border-slate-600 outline-none focus:border-yellow-500 focus:bg-slate-900 transition-colors"
-                  value={transcend} onChange={e => setTranscend(Number(e.target.value))} />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-0 text-xs flex-1">
-              <div className="bg-slate-800 p-1 text-slate-400 text-center border-r border-slate-700 flex flex-col justify-center">
-                Ele: <span className={`font-bold ${getRoleColor(activeHero.element)}`}>{activeHero.element}</span>
-              </div>
-              <div className="bg-slate-800 p-1 text-slate-400 text-center border-r border-slate-700 flex flex-col justify-center">
-                Type: <span className={`font-bold ${getRoleColor(activeHero.type)}`}>{activeHero.type}</span>
-              </div>
-              <div className="bg-slate-800 p-1 text-slate-400 text-center flex flex-col justify-center">
-                Grade: <span className={`font-bold ${gradeColor}`}>{activeHero.grade}</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="lg:col-span-8 grid grid-cols-12">
-            <div className="col-span-12">
-              <GridHeader title="BASE STATS & POTENTIALS & TRANSCENDENCE" />
-            </div>
-            <div className="col-span-12 grid grid-cols-12 bg-slate-800 border-b border-slate-700 text-[10px] text-center text-slate-400 font-bold">
-              <div className="col-span-2 p-1 border-r border-slate-700">STAT</div>
-              <div className="col-span-2 p-1 border-r border-slate-700">BASE VAL</div>
-              <div className="col-span-3 p-1 border-r border-slate-700">★ TRANSCEND</div>
-              <div className="col-span-2 p-1 border-r border-slate-700">POTEN LV</div>
-              <div className="col-span-3 p-1">POTEN ADD</div>
-            </div>
-            {['atk', 'def', 'hp'].map((statKey) => {
-              const label = statKey === 'atk' ? 'Attack' : statKey === 'def' ? 'Defense' : 'HP';
-              const baseValue = statKey === 'atk' ? activeHero.baseAtk : statKey === 'def' ? activeHero.baseDef : activeHero.baseHp;
-
-              // ดึงค่า Transcendence (โบนัสกลุ่มดาว) ที่คำนวณตามสูตรใหม่มาแสดง
-              const transBonus = statKey === 'atk' ? finalStats.tAtk : statKey === 'def' ? finalStats.tDef : finalStats.tHp;
-              const potenValue = statKey === 'atk' ? finalStats.pAtk : statKey === 'def' ? finalStats.pDef : finalStats.pHp;
-
-              return (
-                <div key={statKey} className="col-span-12 grid grid-cols-12 border-b border-slate-700 text-xs items-center text-center">
-                  <div className="col-span-2 p-1 border-r border-slate-700 bg-slate-800 font-bold">{label}</div>
-                  <div className="col-span-2 p-1 border-r border-slate-700 text-white">{baseValue}</div>
-
-                  {/* ช่องแสดงผลโบนัส Transcend สีเหลือง */}
-                  <div className="col-span-3 p-1 border-r border-slate-700 text-yellow-300 font-bold">
-                    +{transBonus}
-                  </div>
-
-                  <div className="col-span-2 p-1 border-r border-slate-700">
-                    <input type="number" min="0" max="30" className="w-full bg-slate-950 text-white text-center border border-slate-600 outline-none"
-                      value={potentials[statKey]} onChange={e => setPotentials({ ...potentials, [statKey]: Number(e.target.value) })} />
-                  </div>
-                  <div className="col-span-3 p-1 text-green-400 font-bold">
-                    +{potenValue}
+              {/* Level & Trans */}
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 block pl-1">Level</label>
+                  <div className="w-full bg-slate-800/40 text-slate-500 text-center border border-slate-700/50 rounded-xl py-2.5 cursor-not-allowed font-bold text-sm">
+                    30 (MAX)
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+                <div className="flex-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 block pl-1 text-yellow-300">★ Trans</label>
+                  <input type="number" min="0" max="12" 
+                    className="w-full bg-slate-950 text-white text-center border border-slate-700 rounded-xl py-2.5 text-sm focus:border-yellow-500 shadow-inner outline-none transition-all"
+                    value={transcend} onChange={e => setTranscend(Number(e.target.value))} />
+                </div>
+              </div>
 
-        {/* MIDDLE SECTION: Final Stats Summary */}
-        <div className="border border-slate-600 bg-slate-900 grid grid-cols-1 md:grid-cols-4">
-          <div className="md:col-span-4">
-            <GridHeader title="FINAL SUMMARY (Hover for breakdown)" />
-          </div>
-
-          {/* Main Stats Column */}
-          <div className="border-r border-slate-700 p-2 space-y-1 bg-slate-800 flex flex-col justify-center">
-            {[
-              { label: 'Attack', color: 'text-orange-400', key: 'atk' },
-              { label: 'Defense', color: 'text-blue-400', key: 'def' },
-              { label: 'HP', color: 'text-green-400', key: 'hp' },
-              { label: 'Speed', color: 'text-yellow-400', key: 'spd' }
-            ].map(item => (
-              <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={false} />
-            ))}
-          </div>
-
-          {/* Sub Stats Column 1 */}
-          <div className="border-r border-slate-700 p-2 space-y-1 text-xs flex flex-col justify-center">
-            {[
-              { label: 'Crit Rate', color: 'text-red-400', key: 'critRate' },
-              { label: 'Crit Damage', color: 'text-red-400', key: 'critDmg' },
-              { label: 'Weakness Hit', color: 'text-purple-400', key: 'weakness' },
-              { label: 'Block Rate', color: 'text-blue-300', key: 'block' }
-            ].map(item => (
-              <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} />
-            ))}
-          </div>
-
-          {/* Sub Stats Column 2 */}
-          <div className="border-r border-slate-700 p-2 space-y-1 text-xs flex flex-col justify-center">
-            {[
-              { label: 'Dmg Reduction', color: 'text-emerald-400', key: 'dmgReduc' },
-              { label: 'Effect Hit', color: 'text-teal-300', key: 'effHit' },
-              { label: 'Effect Res', color: 'text-teal-300', key: 'effRes' }
-            ].map(item => (
-              <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} />
-            ))}
-          </div>
-
-          {/* Accessory & Set Bonus Column */}
-          <div className="p-2 space-y-2 text-xs flex flex-col justify-center">
-            <div>
-              <select className="w-full bg-slate-950 text-white border border-slate-600 outline-none p-1 focus:border-green-400 transition-colors"
-                value={ring} onChange={e => setRing(Number(e.target.value))}>
-                {RING_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label} (+{r.value}%)</option>)}
-              </select>
+              {/* Tags (Element, Type, Grade) */}
+              <div className="flex justify-between gap-3 pt-4 border-t border-white/5">
+                <div className="flex-1 bg-slate-950/50 rounded-xl p-2.5 text-center border border-slate-800/50">
+                  <div className="text-[9px] text-slate-500 mb-1">ELEMENT</div>
+                  <div className={`font-bold text-xs ${getRoleColor(activeHero.element)}`}>{activeHero.element}</div>
+                </div>
+                <div className="flex-1 bg-slate-950/50 rounded-xl p-2.5 text-center border border-slate-800/50">
+                  <div className="text-[9px] text-slate-500 mb-1">TYPE</div>
+                  <div className={`font-bold text-xs ${getRoleColor(activeHero.type)}`}>{activeHero.type}</div>
+                </div>
+                <div className="flex-1 bg-slate-950/50 rounded-xl p-2.5 text-center border border-slate-800/50">
+                  <div className="text-[9px] text-slate-500 mb-1">GRADE</div>
+                  <div className={`font-bold text-xs ${gradeColor}`}>{activeHero.grade}</div>
+                </div>
+              </div>
             </div>
-            <div className="bg-slate-950 border border-slate-700 p-1 text-center text-green-400 whitespace-pre-line leading-tight h-full flex items-center justify-center font-bold">
-              {finalStats.activeSetBonus}
+          </div>
+
+          {/* ขวา: Base Stats & Potentials (ดีไซน์ใหม่ ไร้เส้นตาราง) */}
+          <div className="w-full xl:w-[70%] bg-slate-900/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-xl flex flex-col overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-3 border-b border-white/5">
+              <h2 className="text-white font-bold tracking-widest text-center text-xs">BASE STATS & POTENTIALS</h2>
+            </div>
+            
+            <div className="p-5 flex flex-col gap-3">
+              {/* Header Row สำหรับ Stats */}
+              <div className="hidden md:flex items-center text-[10px] text-slate-500 font-bold px-4 pb-2 border-b border-white/5 tracking-wider">
+                <div className="w-1/4">STAT TYPE</div>
+                <div className="w-1/5 text-center">BASE</div>
+                <div className="w-1/5 text-center text-yellow-500/80">★ TRANSCEND</div>
+                <div className="w-1/5 text-center">POTEN LV</div>
+                <div className="w-[15%] text-right text-green-500/80">POTEN ADD</div>
+              </div>
+
+              {/* Rows */}
+              {['atk', 'def', 'hp'].map((statKey) => {
+                const isAtk = statKey === 'atk';
+                const isDef = statKey === 'def';
+                const label = isAtk ? 'ATTACK' : isDef ? 'DEFENSE' : 'HP';
+                const color = isAtk ? 'text-orange-400' : isDef ? 'text-blue-400' : 'text-green-400';
+                const baseValue = isAtk ? activeHero.baseAtk : isDef ? activeHero.baseDef : activeHero.baseHp;
+                const transBonus = isAtk ? finalStats.tAtk : isDef ? finalStats.tDef : finalStats.tHp;
+                const potenValue = isAtk ? finalStats.pAtk : isDef ? finalStats.pDef : finalStats.pHp;
+
+                return (
+                  <div key={statKey} className="flex flex-col md:flex-row md:items-center justify-between bg-slate-800/30 hover:bg-slate-800/60 transition-colors p-3.5 rounded-xl border border-white/5 gap-3 md:gap-0">
+                    
+                    {/* 1. Stat Name */}
+                    <div className="flex items-center gap-3 w-full md:w-1/4">
+                      <div className={`w-1.5 h-6 rounded-full ${isAtk ? 'bg-orange-500' : isDef ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                      <span className={`font-bold text-sm tracking-wider ${color}`}>{label}</span>
+                    </div>
+
+                    {/* 2. Base */}
+                    <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
+                      <span className="md:hidden text-[10px] text-slate-500">BASE</span>
+                      <span className="text-white font-bold text-base">{baseValue.toLocaleString()}</span>
+                    </div>
+
+                    {/* 3. Trans Bonus */}
+                    <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
+                      <span className="md:hidden text-[10px] text-slate-500">TRANS</span>
+                      <span className="text-yellow-400 font-bold text-sm bg-yellow-900/20 px-2 py-0.5 rounded-md">+{transBonus.toLocaleString()}</span>
+                    </div>
+
+                    {/* 4. Potential Input */}
+                    <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
+                      <span className="md:hidden text-[10px] text-slate-500">LEVEL</span>
+                      <input type="number" min="0" max="30" 
+                        className="w-16 bg-slate-950 border border-slate-600 rounded-lg py-1.5 text-center text-sm text-white focus:border-green-400 outline-none transition-all"
+                        value={potentials[statKey]} onChange={e => setPotentials({ ...potentials, [statKey]: Number(e.target.value) })} />
+                    </div>
+
+                    {/* 5. Potential Add */}
+                    <div className="w-full md:w-[15%] flex justify-between md:justify-end items-center pr-2">
+                      <span className="md:hidden text-[10px] text-slate-500">POTEN</span>
+                      <span className="text-green-400 font-bold text-sm">+{potenValue.toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* BOTTOM SECTION: Equipment Slots */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
-          <EquipmentBlock title="WEAPON 1" data={equipment.weapon1} allowedMains={WEAPON_MAIN_VALUES} onChange={v => setEquipment({ ...equipment, weapon1: v })} />
-          <EquipmentBlock title="WEAPON 2" data={equipment.weapon2} allowedMains={WEAPON_MAIN_VALUES} onChange={v => setEquipment({ ...equipment, weapon2: v })} />
-          <EquipmentBlock title="ARMOR 1" data={equipment.armor1} allowedMains={ARMOR_MAIN_VALUES} onChange={v => setEquipment({ ...equipment, armor1: v })} />
-          <EquipmentBlock title="ARMOR 2" data={equipment.armor2} allowedMains={ARMOR_MAIN_VALUES} onChange={v => setEquipment({ ...equipment, armor2: v })} />
+        {/* ==========================================
+            SECTION 2: FINAL SUMMARY (ดีไซน์ใหม่)
+            ========================================== */}
+        <div className="bg-slate-900/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-3 border-b border-white/5">
+            <h2 className="text-white font-bold tracking-widest text-center text-xs">FINAL COMBAT STATS</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-white/5">
+            
+            {/* Main Stats */}
+            <div className="p-4 space-y-1 bg-slate-800/20">
+              {[
+                { label: 'Attack', color: 'text-orange-400', key: 'atk' },
+                { label: 'Defense', color: 'text-blue-400', key: 'def' },
+                { label: 'HP', color: 'text-green-400', key: 'hp' },
+                { label: 'Speed', color: 'text-yellow-400', key: 'spd' }
+              ].map(item => (
+                <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={false} textSize="text-[15px]" />
+              ))}
+            </div>
+
+            {/* Sub Stats 1 */}
+            <div className="p-4 space-y-1">
+              {[
+                { label: 'Crit Rate', color: 'text-red-400', key: 'critRate' },
+                { label: 'Crit Damage', color: 'text-red-400', key: 'critDmg' },
+                { label: 'Weakness Hit', color: 'text-purple-400', key: 'weakness' },
+                { label: 'Block Rate', color: 'text-blue-300', key: 'block' }
+              ].map(item => (
+                <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-xs" />
+              ))}
+            </div>
+
+            {/* Sub Stats 2 */}
+            <div className="p-4 space-y-1">
+              {[
+                { label: 'Dmg Reduction', color: 'text-emerald-400', key: 'dmgReduc' },
+                { label: 'Effect Hit', color: 'text-teal-300', key: 'effHit' },
+                { label: 'Effect Res', color: 'text-teal-300', key: 'effRes' }
+              ].map(item => (
+                <AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-xs" />
+              ))}
+            </div>
+
+            {/* Accessory & Bonus */}
+            <div className="p-4 flex flex-col gap-4 justify-center bg-slate-800/10">
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 block pl-1">Accessory Ring</label>
+                <select className="w-full bg-slate-950 text-white border border-slate-700 rounded-xl outline-none p-2.5 focus:border-green-400 transition-all shadow-inner text-sm"
+                  value={ring} onChange={e => setRing(Number(e.target.value))}>
+                  {RING_OPTIONS.map(r => <option key={r.value} value={r.value} className="bg-slate-900">{r.label} (+{r.value}%)</option>)}
+                </select>
+              </div>
+              <div className="bg-slate-950/80 border border-slate-700/50 rounded-xl p-3 text-center text-green-400 whitespace-pre-line leading-relaxed h-full flex items-center justify-center font-bold text-[11px] shadow-inner">
+                {finalStats.activeSetBonus || "No Active Set Bonus"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ==========================================
+            SECTION 3: EQUIPMENT SLOTS
+            ========================================== */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6 pt-2">
+          {[
+            { title: "WEAPON 1", key: "weapon1", allowed: WEAPON_MAIN_VALUES },
+            { title: "WEAPON 2", key: "weapon2", allowed: WEAPON_MAIN_VALUES },
+            { title: "ARMOR 1", key: "armor1", allowed: ARMOR_MAIN_VALUES },
+            { title: "ARMOR 2", key: "armor2", allowed: ARMOR_MAIN_VALUES }
+          ].map((eq) => (
+            <div key={eq.key} className="bg-slate-900/80 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden shadow-xl hover:border-slate-500/80 transition-all hover:-translate-y-1 duration-300">
+              <EquipmentBlock title={eq.title} data={equipment[eq.key]} allowedMains={eq.allowed} onChange={v => setEquipment({ ...equipment, [eq.key]: v })} />
+            </div>
+          ))}
         </div>
 
       </div>
