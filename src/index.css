@@ -6,12 +6,10 @@
     background-position: 0% 0%;
     transform: rotate(0deg) scale(1);
   }
-
   50% {
     background-position: 100% 100%;
     transform: rotate(3deg) scale(1.05);
   }
-
   100% {
     background-position: 0% 0%;
     transform: rotate(0deg) scale(1);
@@ -33,29 +31,18 @@
     --accent: #0071e3;
     --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 
-    /* เพิ่มสี Semantic Colors สำหรับแยก Stats */
     --color-char: #ff9500;
-    /* ส้ม (Apple Orange) */
     --color-equip: #34c759;
-    /* เขียว (Apple Green) */
     --color-set: #007aff;
-    /* น้ำเงิน (Apple Blue) */
     --color-ring: #af52de;
-    /* ม่วง (Apple Purple) */
     --color-legend: #ff9f0a;
-    /* Apple Gold/Orange */
     --color-rare: #007aff;
-    /* Apple Blue */
     --color-normal: #8e8e93;
-    /* Apple Gray */
 
-    /* สี Aurora (Light Mode - จะจางลง) */
+    /* สี Aurora (Light Mode) */
     --aurora-1: rgba(52, 199, 89, 0.45);
-    /* เพิ่มความเข้ม Soft Green */
     --aurora-2: rgba(0, 122, 255, 0.45);
-    /* เพิ่มความเข้ม Soft Blue */
     --aurora-3: rgba(175, 82, 222, 0.35);
-    /* เพิ่มความเข้ม Soft Purple */
   }
 
   .dark {
@@ -72,23 +59,15 @@
     --accent: #0a84ff;
     --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 
-    /* เพิ่มสี Semantic Colors สำหรับแยก Stats */
     --color-char: #ff9f0a;
-    /* ส้ม Dark */
     --color-equip: #32d74b;
-    /* เขียว Dark */
     --color-set: #0a84ff;
-    /* น้ำเงิน Dark */
     --color-ring: #bf5af2;
-    /* ม่วง Dark */
     --color-legend: #ff9f0a;
-    /* Apple Gold/Orange */
-    --color-rare: #007aff;
-    /* Apple Blue */
-    --color-normal: #8e8e93;
-    /* Apple Gray */
+    --color-rare: #0a84ff;
+    --color-normal: #98989d;
 
-    /* สี Aurora (Dark Mode - จะสดขึ้น) */
+    /* สี Aurora (Dark Mode) */
     --aurora-1: rgba(50, 215, 75, 0.3);
     --aurora-2: rgba(10, 132, 255, 0.3);
     --aurora-3: rgba(191, 90, 242, 0.2);
@@ -104,42 +83,17 @@
 }
 
 @layer components {
-
-  /* Class หลักสำหรับ Card ที่มีออโรร่า */
-  .aurora-card {
-    position: relative;
-    /* จำเป็นต้องใส่ overflow-hidden หรือกำหนดโค้งมนให้ชัดเจน */
-    overflow: hidden;
-  }
-
-  /* เลเยอร์แสงออโรร่าด้านหลัง */
-  .aurora-card::before {
-    content: '';
+  /* เลเยอร์แสงออโรร่า (แบบใหม่ ไม่ง้อ ::before) */
+  .aurora-bg {
     position: absolute;
-    /* ให้กางออกไปกว้างกว่า Card เล็กน้อยเพื่อรอบขอบ */
-    inset: -30px;
-    z-index: -1;
-    /* อยู่หลัง content */
-    opacity: 1;
-    /* จุดสำคัญ: ทำให้สีฟุ้ง */
-    filter: blur(60px);
-
-    /* ขยายขนาดภาพพื้นหลังเพื่อให้มีพื้นที่ให้แสงเลื่อนไปมาได้ */
+    inset: -40px;
+    filter: blur(40px);
     background-size: 200% 200%;
-
-    /* วาด Gradient สีต่างๆ */
     background-image:
       radial-gradient(circle at 10% 10%, var(--aurora-1) 0%, transparent 50%),
       radial-gradient(circle at 90% 90%, var(--aurora-2) 0%, transparent 50%),
       radial-gradient(circle at 50% 50%, var(--aurora-3) 0%, transparent 50%);
-
-    /* สั่งเล่น Animation ใช้ ease-in-out จะทำให้จังหวะขยับดูลื่นไหลเป็นธรรมชาติ
-       และเปลี่ยนเวลาเป็น 8s เพื่อให้เห็นการขยับชัดเจนขึ้น */
     animation: aurora-flow 8s ease-in-out infinite alternate;
-
-    /* กำหนดจุดหมุนให้อยู่ตรงกลาง Card พอดี */
-    transform-origin: center center;
-    /* ป้องกันไม่ให้ตัวแสงนี้ไปขัดขวางการคลิกเมาส์ใน Card */
     pointer-events: none;
   }
 }
