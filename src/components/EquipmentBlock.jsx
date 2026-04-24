@@ -46,11 +46,11 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
           <h2 className="text-(--text-main) font-bold tracking-wide text-xs uppercase truncate min-w-0">
             {title}
           </h2>
-          <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-1 rounded-full border shadow-sm transition-all
-            ${remainingRolls === 0 
-              ? "bg-(--input-bg) text-(--text-muted) border-(--border-color)" 
+          <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full border shadow-sm transition-all
+            ${remainingRolls === 0
+              ? "bg-(--input-bg) text-(--text-muted) border-(--border-color)"
               : "bg-(--accent)/10 text-(--accent) border-(--accent)/20"}`}>
-            ROLLS: {remainingRolls}
+            Usable Substats: {remainingRolls}
           </span>
         </div>
 
@@ -77,10 +77,13 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
                   compact={true}
                 />
               </div>
-              
+
               {/* ตู้ LED ของ Main Stat */}
               <div className="arcade-led-board min-w-[100px]">
-                <span className="arcade-value-main">
+                <span
+                  key={data.mainStat.value} /* ตัวแปรนี้เปลี่ยน Animation จะเล่น */
+                  className="arcade-value-main animate-value-change"
+                >
                   {formatStatValue(data.mainStat.type, data.mainStat.value)}
                 </span>
               </div>
@@ -138,12 +141,15 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
                     </div>
 
                     <div className="w-[35%] flex justify-end">
-                       {/* ตู้ LED ของ Sub Stat */}
-                       <div className="arcade-led-board min-w-[70px]">
-                         <span className="arcade-value-sub">
-                           {formatStatValue(sub.type, getSubstatValue(sub.type, sub.rolls))}
-                         </span>
-                       </div>
+                      {/* ตู้ LED ของ Sub Stat */}
+                      <div className="arcade-led-board min-w-[70px]">
+                        <span
+                          key={sub.rolls} /* ตัวแปรนี้เปลี่ยน Animation จะเล่น */
+                          className="arcade-value-sub animate-value-change"
+                        >
+                          {formatStatValue(sub.type, getSubstatValue(sub.type, sub.rolls))}
+                        </span>
+                      </div>
                     </div>
 
                   </div>

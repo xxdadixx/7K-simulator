@@ -353,3 +353,61 @@
   position: relative;
   z-index: 10;
 }
+
+/* ตัวเลข Base Stat (สีขาวเรืองแสง) */
+.arcade-value-mini {
+  font-family: 'VT323', monospace;
+  font-size: 1.5rem; /* ขนาดประมาณ 24px (ใหญ่กว่าตัวอักษรปกติเล็กน้อย แต่ไม่ใหญ่เกิน) */
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.6), 0 0 10px rgba(255, 255, 255, 0.3);
+  letter-spacing: 1px;
+}
+
+/* ตัวเลข Bonus เพิ่มเติม (เรืองแสงตามสีที่กำหนด) */
+.arcade-value-bonus {
+  font-family: 'VT323', monospace;
+  font-size: 1.25rem; /* ขนาดประมาณ 20px */
+  line-height: 1;
+  text-shadow: 0 0 8px currentColor; /* ดึงสีเรืองแสงจากสีของ text-color ปัจจุบัน */
+  letter-spacing: 1px;
+}
+
+@keyframes cyber-glitch-snap {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9) skewX(-15deg);
+    filter: blur(6px);
+    letter-spacing: 4px; /* ตัวเลขกระจายตัว */
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.1) skewX(5deg);
+    filter: blur(0px) brightness(1.5);
+    /* เอฟเฟกต์ RGB Split (สีฟ้า-ชมพู เหลื่อมกัน) */
+    text-shadow: 3px 0 0 rgba(0, 255, 255, 0.7), -3px 0 0 rgba(255, 0, 255, 0.7);
+    letter-spacing: -1px;
+  }
+  60% {
+    transform: translateY(1px) scale(1) skewX(0deg);
+    text-shadow: 0 0 20px currentColor, 0 0 30px currentColor; /* แฟลชสว่างวาบ */
+    letter-spacing: normal;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-value-change {
+  display: inline-block;
+  /* ใช้ Timing Function แบบกระชาก (Back Out) ให้ดูซิ่งๆ */
+  animation: cyber-glitch-snap 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  will-change: transform, opacity, filter, text-shadow; /* ช่วยให้เบราว์เซอร์เรนเดอร์ลื่นขึ้น */
+}
+
+/* สำหรับ Chrome, Safari, Edge, Opera */
+.hide-spin-button::-webkit-outer-spin-button,
+.hide-spin-button::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

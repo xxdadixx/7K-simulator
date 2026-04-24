@@ -4,7 +4,7 @@ import { parseCSVData, getValidationStatus, getTransColorClass } from './utils/h
 import { useHeroStats } from './hooks/useHeroStats';
 import { TopBar } from './components/TopBar';
 import { AnimatedStatRow } from './components/AnimatedStatRow';
-import EquipmentSection from './components/EquipmentSection';
+import { EquipmentSection } from './components/EquipmentSection';
 import { GlassSelect } from './components/GlassSelect';
 
 export default function App() {
@@ -88,7 +88,17 @@ export default function App() {
     setRing(preset.ring); setPotentials(preset.potentials); setEquipment(preset.equipment);
   };
 
-  const handleDeletePreset = (id, e) => { e.stopPropagation(); setPresets(presets.filter(p => p.id !== id)); };
+  const handleDeletePreset = (id, e) => {
+    e.stopPropagation(); // ป้องกันไม่ให้คลิกทะลุไปโดนปุ่มโหลด Preset
+
+    // เด้งหน้าต่างแจ้งเตือนให้ผู้ใช้ยืนยันก่อน
+    const isConfirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบ Preset นี้?\n(ข้อมูลที่ลบไปแล้วจะไม่สามารถกู้คืนได้)");
+
+    // ถ้าผู้ใช้กด "ตกลง" (OK) ถึงจะทำการลบ state
+    if (isConfirmed) {
+      setPresets(presets.filter(p => p.id !== id));
+    }
+  };
 
   const getElementColorClass = (element) => {
     const el = element?.toUpperCase();
@@ -289,13 +299,19 @@ export default function App() {
                       {/* 2. Base Value (ดึงจาก CSV) */}
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Base</span>
-                        <span className="text-(--text-main) font-semibold text-base">{baseValue?.toLocaleString() || 0}</span>
+                        {/* เปลี่ยนเป็นคลาส arcade-value-mini */}
+                        <span className="arcade-value-mini">
+                          {baseValue?.toLocaleString() || 0}
+                        </span>
                       </div>
 
                       {/* 3. Transcend Bonus */}
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Trans</span>
-                        <span className="text-(--text-muted) font-medium text-sm">
+                        <span
+                          key={transBonus} /* <--- เพิ่ม key */
+                          className="arcade-value-bonus text-[#00bfff] animate-value-change" /* <--- เพิ่ม animate */
+                        >
                           {isSpd ? '-' : `+${transBonus.toLocaleString()}`}
                         </span>
                       </div>
@@ -303,8 +319,8 @@ export default function App() {
                       {/* 4. Potential Level (Stepper) */}
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Level</span>
-                        {/* สำหรับ Speed เราจะทำให้จางลงและกดไม่ได้ (Disabled) */}
                         <div className={`flex items-center bg-(--bg-color) border border-(--border-color) rounded-lg overflow-hidden shadow-sm h-8 w-24 ${isSpd ? 'opacity-20 grayscale pointer-events-none' : ''}`}>
+                          {/* ปุ่มลบ (-) */}
                           <button
                             onClick={() => setPotentials({ ...potentials, [statKey]: Math.max(0, potentials[statKey] - 1) })}
                             disabled={potentials[statKey] <= 0}
@@ -313,19 +329,22 @@ export default function App() {
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 12H4" /></svg>
                           </button>
 
+                          {/* ช่อง Input ที่พิมพ์ได้ แต่ไม่มีลูกศร และตัวเลขเรืองแสงแบบ Arcade */}
                           <input
                             type="number"
-                            className="flex-1 w-full h-full text-center text-sm font-bold text-(--text-main) border-x border-(--border-color) bg-(--input-bg) focus:outline-none"
+                            className="flex-1 w-full h-full text-center bg-(--input-bg) border-x border-(--border-color) focus:outline-none hide-spin-button arcade-value-mini !text-[16px]"
                             value={isSpd ? 0 : (potentials[statKey] === 0 ? '' : potentials[statKey])}
                             disabled={isSpd}
                             placeholder="0"
                             onChange={(e) => {
                               let val = parseInt(e.target.value, 10);
-                              if (isNaN(val)) val = 0; if (val > 30) val = 30;
+                              if (isNaN(val) || val < 0) val = 0;
+                              if (val > 30) val = 30; // ล็อกไม่ให้พิมพ์เกิน 30
                               setPotentials({ ...potentials, [statKey]: val });
                             }}
                           />
 
+                          {/* ปุ่มบวก (+) */}
                           <button
                             onClick={() => setPotentials({ ...potentials, [statKey]: Math.min(30, potentials[statKey] + 1) })}
                             disabled={potentials[statKey] >= 30}
@@ -339,7 +358,10 @@ export default function App() {
                       {/* 5. Potential Additional Value */}
                       <div className="w-full md:w-[15%] flex justify-between md:justify-end items-center pr-2">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Poten Add</span>
-                        <span className="text-(--accent) font-semibold text-sm">
+                        <span
+                          key={potenValue} /* <--- เพิ่ม key */
+                          className="arcade-value-bonus text-[#ffd700] animate-value-change" /* <--- เพิ่ม animate */
+                        >
                           {isSpd ? '-' : `+${potenValue.toLocaleString()}`}
                         </span>
                       </div>
