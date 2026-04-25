@@ -1,24 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SET_OPTIONS, SUBSTAT_BASES } from '../utils/constants';
 import { getSubstatValue, formatStatValue } from '../utils/helpers';
 import { GlassSelect } from './GlassSelect';
 
 export const EquipmentBlock = ({ title, data, allowedMains, onChange, heroType, isWeapon }) => {
+  // 🌟 1. สร้าง State สำหรับระบบ Dropdown แบบใหม่
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // 'list' หรือ 'grid'
+  const dropdownRef = useRef(null);
+
+  // 🌟 2. ฟังก์ชันปิด Dropdown เมื่อคลิกพื้นที่อื่นบนหน้าจอ
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const usedRolls = data.substats.reduce((sum, sub) => sum + sub.rolls, 0);
   const remainingRolls = 5 - usedRolls;
 
-  const getEquipmentImage = () => {
-    if (!data.set || data.set === 'None') return null; // ถ้าไม่ใส่ของ ไม่โชว์รูป
-    
-    // ลบช่องว่างออกเผื่อชื่อเซ็ตมีเว้นวรรค (เช่น "Legendary Set" -> "LegendarySet")
-    const formattedSetName = data.set.replace(/\s+/g, ''); 
-    
+  // 🌟 3. ปรับฟังก์ชันให้รับค่า setName เพื่อดึงรูปของทุกๆ เซ็ตมาโชว์ในโหมด Grid ได้
+  const getEquipmentImage = (setName) => {
+    if (!setName || setName === 'None') return null;
+
+    const formattedSetName = setName;
+
     if (isWeapon) {
-      // ถ้าเป็นอาวุธ ให้เช็ค Type ว่าเป็น MAGIC หรือ ATTACK
       const typeStr = heroType?.toUpperCase() === 'MAGIC' ? 'Magic' : 'Attack';
       return `/equipment/weapon_${formattedSetName}_${typeStr}.png`;
     } else {
-      // ถ้าเป็นชุดเกราะ ไม่ต้องสน Type
       return `/equipment/armor_${formattedSetName}.png`;
     }
   };
@@ -59,8 +73,8 @@ export const EquipmentBlock = ({ title, data, allowedMains, onChange, heroType, 
       <div className="relative z-20 flex flex-col h-full">
         {/* Header */}
         <div className="bg-(--card-header) p-4 border-b border-(--border-color) flex justify-between items-center gap-2 rounded-t-3xl">
-          <h2 className="text-(--text-main) font-bold tracking-wide text-xs uppercase truncate min-w-0">
-            {title}
+          <h2 className="text-(--text-main) font-bold tracking-wide text-xs uppercase truncate min-w-0 flex items-center gap-1.5">
+            {isWeapon ? '⚔️' : '🛡️'} {title}
           </h2>
           <span className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full border shadow-sm transition-all
             ${remainingRolls === 0
@@ -71,14 +85,128 @@ export const EquipmentBlock = ({ title, data, allowedMains, onChange, heroType, 
         </div>
 
         <div className="p-5 flex flex-col gap-6">
-          {/* Set Name */}
-          <div className="min-w-0">
-            <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1">Set Name</label>
-            <GlassSelect
-              value={data.set}
-              onChange={(val) => onChange({ ...data, set: val })}
-              options={SET_OPTIONS.map(s => ({ label: s, value: s }))}
-            />
+
+          {/* 🌟 Set Name & Image Section 🌟 */}
+          <div className="flex items-center gap-4 bg-black/5 dark:bg-black/20 p-2 rounded-2xl border border-(--border-color) shadow-inner">
+
+            {/* Image Box (ย้อนกลับมาใช้ขนาด 64x64 หรือ w-16 h-16) */}
+            <div className="w-16 h-16 shrink-0 bg-(--card-bg) border border-(--border-color) rounded-xl flex items-center justify-center overflow-hidden shadow-sm relative group">
+              {data.set !== 'None' ? (
+                <img
+                  src={getEquipmentImage(data.set)}
+                  alt={data.set}
+                  // เติม p-1 กลับเข้ามาเพื่อให้รูปภาพมีระยะขอบหายใจนิดนึง
+                  className="w-full h-full object-contain p-1 transition-transform duration-300 group-hover:scale-110 drop-shadow-md"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/favicon.svg';
+                    e.target.className = 'w-8 h-8 opacity-20 grayscale';
+                  }}
+                />
+              ) : (
+                <span className="text-[10px] text-(--text-muted) font-black uppercase tracking-widest opacity-40">Empty</span>
+              )}
+            </div>
+
+            {/* 🌟 4. ระบบ Custom Dropdown เลือกเซ็ตใหม่ 🌟 */}
+            <div className="flex-1 w-full min-w-0 flex flex-col justify-center relative" ref={dropdownRef}>
+              <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-1 block pl-1 text-left">Set Name</label>
+
+              {/* ปุ่มกดเปิด/ปิด Dropdown */}
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full bg-(--input-bg) border rounded-xl p-3 flex justify-between items-center font-semibold text-sm outline-none transition-all shadow-[inset_0_1px_1px_var(--glass-inner)] text-(--text-main) ${isDropdownOpen ? 'border-(--accent) ring-2 ring-(--accent)/20' : 'border-(--border-color) hover:border-(--accent)/50'}`}
+              >
+                <span className="truncate">{data.set}</span>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-(--accent)' : 'text-(--text-muted)'}`}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+
+              {/* เมนู Dropdown ลอย */}
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 z-[100] glass-dropdown-menu flex flex-col overflow-hidden shadow-2xl border border-(--border-color) rounded-xl origin-top animate-in fade-in slide-in-from-top-2 duration-200">
+
+                  {/* แถบ Tabs: List vs Grid */}
+                  <div className="flex justify-end gap-1.5 p-2 border-b border-(--border-color) bg-black/5 dark:bg-white/5">
+                    <button
+                      onClick={(e) => { e.preventDefault(); setViewMode('list'); }}
+                      className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${viewMode === 'list' ? 'bg-(--accent) text-white shadow-md' : 'text-(--text-muted) hover:bg-black/10 dark:hover:bg-white/10'}`}
+                      title="List View"
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); setViewMode('grid'); }}
+                      className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${viewMode === 'grid' ? 'bg-(--accent) text-white shadow-md' : 'text-(--text-muted) hover:bg-black/10 dark:hover:bg-white/10'}`}
+                      title="Grid View"
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
+                    </button>
+                  </div>
+
+                  {/* พื้นที่แสดงผลลัพธ์การเลือก */}
+                  <div className="max-h-[260px] overflow-y-auto custom-scrollbar p-2 bg-(--card-bg) backdrop-blur-3xl">
+                    {viewMode === 'list' ? (
+
+                      /* ---------------- โหมดที่ 1: List View ---------------- */
+                      <div className="flex flex-col gap-1">
+                        {SET_OPTIONS.map(s => (
+                          <button
+                            key={s}
+                            className={`dropdown-item-hover w-full text-left px-3 py-2.5 flex justify-between items-center border border-transparent hover:border-(--border-color) rounded-lg font-semibold text-sm transition-colors ${data.set === s ? 'text-(--accent) bg-(--accent)/10' : 'text-(--text-main)'}`}
+                            onClick={() => { onChange({ ...data, set: s }); setIsDropdownOpen(false); }}
+                          >
+                            {s}
+                            {data.set === s && <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                          </button>
+                        ))}
+                      </div>
+
+                    ) : (
+
+                      /* ---------------- โหมดที่ 2: Grid View ---------------- */
+                      <div className="grid grid-cols-2 gap-3">
+                        {SET_OPTIONS.map(s => {
+                          const imgSrc = getEquipmentImage(s);
+                          return (
+                            <button
+                              key={s}
+                              onClick={() => { onChange({...data, set: s}); setIsDropdownOpen(false); }}
+                              className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-300 hover:z-10 hover:shadow-lg group bg-black/10 dark:bg-black/40 ${data.set === s ? 'border-(--accent) ring-2 ring-(--accent)/50' : 'border-transparent hover:border-(--border-color)'}`}
+                              title={s}
+                            >
+                              {imgSrc ? (
+                                <img 
+                                  src={imgSrc} 
+                                  alt={s} 
+                                  // 🌟 ลด padding (p-1) และเพิ่ม hover:scale-110 ให้ซูมดูรายละเอียดได้
+                                  className="w-full h-full object-contain p-1 group-hover:scale-110 group-hover:brightness-110 transition-transform duration-300"
+                                  onError={(e) => { 
+                                    e.target.onerror = null; 
+                                    e.target.src = '/favicon.svg'; 
+                                    e.target.className = 'w-6 h-6 m-auto opacity-20 grayscale mt-4';
+                                  }} 
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center opacity-40 bg-black/5 dark:bg-white/5">
+                                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                </div>
+                              )}
+                              
+                              {/* 🌟 ป้ายชื่อด้านล่าง: เพิ่ม group-hover:translate-y-full เพื่อให้สไลด์หลบเมื่อเอาเมาส์ชี้ */}
+                              <div className="absolute inset-x-0 bottom-0 bg-black/70 backdrop-blur-md px-1 py-1.5 border-t border-white/10 flex items-center justify-center transition-transform duration-300 group-hover:translate-y-full">
+                                <span className={`block text-[10px] font-bold text-center truncate tracking-wider ${data.set === s ? 'text-(--accent)' : 'text-white'}`}>
+                                  {s}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Main Stat - จัด Layout ใหม่ออกแบบเป็นตู้ LED แยกฝั่งชัดเจน */}
@@ -160,7 +288,7 @@ export const EquipmentBlock = ({ title, data, allowedMains, onChange, heroType, 
                       {/* ตู้ LED ของ Sub Stat */}
                       <div className="arcade-led-board min-w-[70px]">
                         <span
-                          key={sub.rolls} /* ตัวแปรนี้เปลี่ยน Animation จะเล่น */
+                          key={sub.rolls}
                           className="arcade-value-sub animate-value-change"
                         >
                           {formatStatValue(sub.type, getSubstatValue(sub.type, sub.rolls))}

@@ -8,7 +8,8 @@ export const GlassSelect = ({
   icon, 
   className = "",
   compact = false,
-  centered = false 
+  centered = false,
+  dropdownPosition = "down" // 🌟 1. เพิ่ม Prop ใหม่ตรงนี้
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -48,9 +49,13 @@ export const GlassSelect = ({
         </div>
       </div>
 
+      {/* 🌟 2. อัปเดตคลาสให้กางขึ้นหรือลงตามค่า dropdownPosition 🌟 */}
       {isOpen && (
-        <div className="glass-dropdown-menu w-full left-0 z-200 top-full mt-2 origin-top">
-          {/* ปรับความสูงจาก max-h-60 เป็น max-h-48 (ประมาณ 12rem/192px) เพื่อไม่ให้ดันขอบจอด้านล่างเกินไป */}
+        <div className={`glass-dropdown-menu absolute w-full left-0 z-[200] ${
+          dropdownPosition === 'up' 
+            ? 'bottom-full mb-2 origin-bottom' 
+            : 'top-full mt-2 origin-top'
+        }`}>
           <div className="max-h-48 overflow-y-auto custom-scrollbar py-1">
             {options.map((opt) => (
               <div

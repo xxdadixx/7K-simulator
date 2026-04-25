@@ -72,18 +72,17 @@ export const AnimatedStatRow = ({ item, stat, isPercent, textSize = "text-sm", s
                 </span>
             </div>
 
-            <div className="flex flex-col items-end justify-center min-w-[75px]">
+            <div className="flex flex-col items-end justify-center min-w-[75px] h-full">
                 <span
                     key={currentTotal}
                     className={`font-bold tracking-widest transition-colors animate-value-change ${isFlashing ? 'text-emerald-400 ![text-shadow:0_0_8px_currentColor]' : 'text-(--text-main) dark:![text-shadow:none]'}`}
-                    style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.85rem', marginTop: '2px' }}
+                    style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.85rem' }}
                 >
                     {fmt(currentTotal)}
                 </span>
-
-                <div className="h-3 mt-1.5 flex items-center justify-end overflow-visible">
-                    {snapStat ? (
-                        hasDiff ? (
+                {snapStat ? (
+                    <div className="h-3 mt-1 flex items-center justify-end overflow-visible">
+                        {hasDiff ? (
                             <span
                                 className={`font-black tracking-widest animate-value-change ${diff > 0 ? 'text-emerald-500 drop-shadow-[0_0_2px_rgba(16,185,129,0.5)]' : 'text-red-500 drop-shadow-[0_0_2px_rgba(239,68,68,0.5)]'}`}
                                 style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.55rem' }}
@@ -92,15 +91,17 @@ export const AnimatedStatRow = ({ item, stat, isPercent, textSize = "text-sm", s
                             </span>
                         ) : (
                             <span className="text-[10px] font-bold text-(--text-muted) opacity-40">-</span>
-                        )
-                    ) : (
-                        bonusTotal > 0 && (
+                        )}
+                    </div>
+                ) : (
+                    bonusTotal > 0 && (
+                        <div className="h-3 mt-1 flex items-center justify-end overflow-visible">
                             <span className="text-emerald-500 font-bold tracking-widest drop-shadow-[0_0_2px_rgba(16,185,129,0.5)]" style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.5rem' }}>
                                 (+{fmt(bonusTotal)})
                             </span>
-                        )
-                    )}
-                </div>
+                        </div>
+                    )
+                )}
             </div>
 
             {/* 🌟 Upgraded Holographic Tooltip 🌟 */}

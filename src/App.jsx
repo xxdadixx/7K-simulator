@@ -316,17 +316,12 @@ export default function App() {
                         onChange={(val) => setTranscend(Number(val))}
                         options={[...Array(12)].map((_, i) => {
                           const val = i + 1;
-                          // กำหนดสีของตัวหนังสือตามเงื่อนไข (1-6 สีฟ้า, 7-12 สีแดง)
                           const fontColor = val <= 6 ? 'text-[#3b82f6]' : 'text-[#ef4444]';
-
-                          return {
-                            label: `★ ${val}`,
-                            value: val,
-                            className: fontColor // <--- ส่ง class สีเข้าไปในแต่ละ option
-                          };
+                          return { label: `★ ${val}`, value: val, className: fontColor };
                         })}
                         className={getTransColorClass(transcend)}
                         centered={true}
+                        dropdownPosition="up" /* 🌟 เติมบรรทัดนี้เพื่อให้ Trans เด้งขึ้นด้านบน */
                       />
                     </div>
                   </div>
@@ -340,6 +335,7 @@ export default function App() {
                     onChange={(val) => setRing(Number(val))}
                     options={RING_OPTIONS.map(r => ({ label: r.label, value: r.value }))}
                     centered={true}
+                    dropdownPosition="up" /* 🌟 เติมบรรทัดนี้เพื่อให้ Ring เด้งขึ้นด้านบน */
                   />
                 </div>
 
