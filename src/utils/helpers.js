@@ -1,5 +1,12 @@
 import { SUBSTAT_BASES, TRANSCEND_MULTIPLIERS } from './constants';
 
+// 🌟 OPTIMIZATION: Moved static array outside the function to prevent memory reallocation
+const EXCLUDE_NAMES = [
+    'ICON', 'Acid Aqua Face', 'Vanguard', 'Bounty Tracker',
+    'Paladin', 'Assassin', 'Gatekeeper', 'Guardian',
+    'Avenger', 'Spellweaver', 'Orchestrator'
+];
+
 export const getTranscendBonus = (baseValue, grade, heroStarType, statName, level) => {
     const safeGrade = grade.toUpperCase() === 'RARE' ? 'RARE' : 'LEGEND';
     const multipliers = TRANSCEND_MULTIPLIERS[safeGrade];
@@ -8,21 +15,18 @@ export const getTranscendBonus = (baseValue, grade, heroStarType, statName, leve
     let percent = 0;
 
     if (statName === 'Attack') {
-        // Check if hero's StarType matching ATK
         if (heroStarType === 'ATK') {
             percent = multipliers.ATK[lv];
         } else {
             percent = multipliers.SUPPORT[lv];
         }
     } else if (statName === 'Defense') {
-        // Check if hero's StarType matching DEF
         if (heroStarType === 'DEF') {
             percent = multipliers.DEF[lv];
         } else {
             percent = multipliers.SUPPORT[lv];
         }
     } else if (statName === 'HP') {
-        // HP follows its own table without type check based on your formula
         percent = multipliers.HP[lv];
     }
 
@@ -41,7 +45,6 @@ export const getValidationStatus = (equipments) => {
         totalRemaining += (5 - sumRolls);
     });
 
-    // คืนค่าเป็นรูปแบบ UI ที่พร้อมนำไปแสดงเป็นป้าย Pill
     if (totalRemaining > 0) {
         return { status: 'warning', text: `${totalRemaining} Substats Remaining`, color: "text-yellow-500", bg: "bg-yellow-500/10", border: "border-yellow-500/20" };
     } else if (totalRemaining < 0) {
@@ -59,13 +62,6 @@ export const parseCSVData = (csvText) => {
     const lines = csvText.split(/\r?\n/);
     const parsedData = [];
 
-    // รายชื่อที่ไม่อนุญาตให้ดึงมาเป็นตัวละคร
-    const excludeNames = [
-        'ICON', 'Acid Aqua Face', 'Vanguard', 'Bounty Tracker',
-        'Paladin', 'Assassin', 'Gatekeeper', 'Guardian',
-        'Avenger', 'Spellweaver', 'Orchestrator'
-    ];
-
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
@@ -76,8 +72,8 @@ export const parseCSVData = (csvText) => {
 
         const name = cols[0];
 
-        // ดักจับ: ถ้าชื่อว่าง หรือ ชื่อตรงกับใน Blacklist ให้ข้ามบรรทัดนี้ไปเลย
-        if (!name || excludeNames.includes(name)) continue;
+        // 🌟 OPTIMIZATION: Check against the global constant
+        if (!name || EXCLUDE_NAMES.includes(name)) continue;
 
         parsedData.push({
             name: name,
@@ -102,7 +98,7 @@ export const parseCSVData = (csvText) => {
 
 export const getPotentialValue = (type, level) => {
     let val = 0;
-    let lv = Math.max(0, Math.min(30, level)); // Clamp between 0 and 30
+    let lv = Math.max(0, Math.min(30, level));
 
     if (type === 'atk') {
         if (lv > 20) { val += (lv - 20) * 15; lv = 20; }
@@ -140,4 +136,4 @@ export const getTransColorClass = (val) => {
     if (val >= 1 && val <= 6) return "trans-blue";
     if (val >= 7 && val <= 12) return "trans-red";
     return "";
-  };
+};

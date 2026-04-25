@@ -1,6 +1,19 @@
 import { useMemo } from 'react';
 import { getTranscendBonus, getSubstatValue, getPotentialValue } from '../utils/helpers';
 
+// 🌟 OPTIMIZATION: Moved static object OUTSIDE the hook
+const SET_BONUS_DATA = {
+  'Vanguard': { 2: ['Attack +20%'], 4: ['Attack +45%', 'Effect Hit Rate +20%'] },
+  'Guardian': { 2: ['Defense +20%'], 4: ['Defense +45%', 'Effect Resistance +20%'] },
+  'Paladin': { 2: ['HP +17%'], 4: ['HP +40%', 'Income Healing Boots 20%'] },
+  'Assassin': { 2: ['Crit Rate +15%'], 4: ['Crit Rate +30%', 'Ignore Defense 15%'] },
+  'Bounty Tracker': { 2: ['Weakness Hit Chance +15%'], 4: ['Weakness Hit Chance +35%', 'Weakness Hit Damage 35%'] },
+  'Gatekeeper': { 2: ['Block Rate +15%'], 4: ['Block Rate +30%', 'Block Damage Reduction 10%'] },
+  'Spellweaver': { 2: ['Effect Hit Rate +17%'], 4: ['Effect Hit Rate +35%', 'Effect Probability 10%'] },
+  'Orchestrator': { 2: ['Effect Resistance +17%'], 4: ['Effect Resistance +35%', 'Star Battles with 1 turn of Crowd Control Immunity'] },
+  'Avenger': { 2: ['Damage Dealt 15%'], 4: ['Damage Dealt 30%', 'Boss Damage 40%'] }
+};
+
 export const useHeroStats = (activeHero, equipment, potentials, transcend, ring) => {
   return useMemo(() => {
     if (!activeHero) return null;
@@ -34,18 +47,6 @@ export const useHeroStats = (activeHero, equipment, potentials, transcend, ring)
     const vanguardEFF = setCounts['Vanguard'] === 4 ? 20 : 0;
     const orchestratorRES = setCounts['Orchestrator'] === 4 ? 35 : (setCounts['Orchestrator'] >= 2 ? 17 : 0);
     const guardianRES = setCounts['Guardian'] === 4 ? 20 : 0;
-
-    const SET_BONUS_DATA = {
-      'Vanguard': { 2: ['Attack +20%'], 4: ['Attack +45%', 'Effect Hit Rate +20%'] },
-      'Guardian': { 2: ['Defense +20%'], 4: ['Defense +45%', 'Effect Resistance +20%'] },
-      'Paladin': { 2: ['HP +17%'], 4: ['HP +40%', 'Income Healing Boots 20%'] },
-      'Assassin': { 2: ['Crit Rate +15%'], 4: ['Crit Rate +30%', 'Ignore Defense 15%'] },
-      'Bounty Tracker': { 2: ['Weakness Hit Chance +15%'], 4: ['Weakness Hit Chance +35%', 'Weakness Hit Damage 35%'] },
-      'Gatekeeper': { 2: ['Block Rate +15%'], 4: ['Block Rate +30%', 'Block Damage Reduction 10%'] },
-      'Spellweaver': { 2: ['Effect Hit Rate +17%'], 4: ['Effect Hit Rate +35%', 'Effect Probability 10%'] },
-      'Orchestrator': { 2: ['Effect Resistance +17%'], 4: ['Effect Resistance +35%', 'Star Battles with 1 turn of Crowd Control Immunity'] },
-      'Avenger': { 2: ['Damage Dealt 15%'], 4: ['Damage Dealt 30%', 'Boss Damage 40%'] }
-    };
 
     const activeSetDetails = [];
     Object.entries(setCounts).forEach(([setName, count]) => {

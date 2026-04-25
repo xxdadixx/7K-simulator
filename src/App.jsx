@@ -7,6 +7,54 @@ import { AnimatedStatRow } from './components/AnimatedStatRow';
 import { EquipmentSection } from './components/EquipmentSection';
 import { GlassSelect } from './components/GlassSelect';
 
+// 🌟 OPTIMIZATION: Moved pure utility functions and defaults OUTSIDE the component 
+// to prevent memory reallocation on every render cycle.
+const defaultSubstats = () => [
+  { type: 'Attack %', rolls: 0 }, { type: 'Defense %', rolls: 0 },
+  { type: 'HP %', rolls: 0 }, { type: 'Speed', rolls: 0 }
+];
+
+const getElementColorClass = (element) => {
+  const el = element?.toUpperCase();
+  if (el === 'ATTACK') return 'text-red-500';
+  if (el === 'MAGIC') return 'text-blue-500';
+  if (el === 'UNIVERSAL') return 'text-purple-500';
+  if (el === 'DEFENSE') return 'text-amber-700';
+  if (el === 'SUPPORT') return 'text-yellow-500';
+  return 'text-(--text-main)';
+};
+
+const getElementBgClass = (element) => {
+  const el = element?.toUpperCase();
+  if (el === 'ATTACK') return 'bg-red-500/10 border-red-500/30';
+  if (el === 'MAGIC') return 'bg-blue-500/10 border-blue-500/30';
+  if (el === 'UNIVERSAL') return 'bg-purple-500/10 border-purple-500/30';
+  if (el === 'DEFENSE') return 'bg-amber-700/10 border-amber-700/30';
+  if (el === 'SUPPORT') return 'bg-yellow-500/10 border-yellow-500/30';
+  return 'bg-gray-500/10 border-gray-500/30';
+};
+
+const getTypeColorClass = (t) => {
+  const type = t?.toUpperCase();
+  if (type === 'ATTACK') return 'text-red-500';
+  if (type === 'MAGIC') return 'text-blue-500';
+  return 'text-(--text-main)';
+};
+
+const getGradeColorClass = (grade) => {
+  const g = grade?.toUpperCase();
+  if (g === 'LEGEND') return 'text-(--color-legend)';
+  if (g === 'RARE') return 'text-(--color-rare)';
+  return 'text-(--color-normal)';
+};
+
+const getGradeBgClass = (grade) => {
+  const g = grade?.toUpperCase();
+  if (g === 'LEGEND') return 'bg-(--color-legend)/10 border-(--color-legend)/30';
+  if (g === 'RARE') return 'bg-(--color-rare)/10 border-(--color-rare)/30';
+  return 'bg-(--color-normal)/10 border-(--color-normal)/30';
+};
+
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [heroDataList, setHeroDataList] = useState([]);
@@ -30,14 +78,9 @@ export default function App() {
       return saved ? JSON.parse(saved) : [];
     } catch (error) {
       console.error("Failed to parse presets:", error);
-      return []; // ถ้าพังให้คืนค่า Array ว่างแทน เว็บจะได้ไม่ค้าง
+      return []; 
     }
   });
-
-  const defaultSubstats = () => [
-    { type: 'Attack %', rolls: 0 }, { type: 'Defense %', rolls: 0 },
-    { type: 'HP %', rolls: 0 }, { type: 'Speed', rolls: 0 }
-  ];
 
   const [equipment, setEquipment] = useState({
     weapon1: { set: 'None', mainStat: { type: 'Attack %', value: 0 }, substats: defaultSubstats() },
@@ -49,7 +92,6 @@ export default function App() {
   const filteredHeroes = useMemo(() => heroDataList.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())), [heroDataList, searchTerm]);
   const activeHero = useMemo(() => heroDataList.find(h => h.name === selectedHeroName) || null, [heroDataList, selectedHeroName]);
 
-  // เรียกใช้ Custom Hook ที่สร้างไว้
   const finalStats = useHeroStats(activeHero, equipment, potentials, transcend, ring);
   const validationMsg = getValidationStatus(equipment);
 
@@ -72,17 +114,20 @@ export default function App() {
       .finally(() => setIsLoading(false));
   }, []);
 
+  // 🌟 OPTIMIZATION: Only bind DOM events when the dropdown is active to save resources
   useEffect(() => {
-    const handleClickOutside = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false); };
+    if (!isDropdownOpen) return;
+    const handleClickOutside = (e) => { 
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false); 
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isDropdownOpen]);
 
   const handleToggleSnapshot = () => {
     if (snapshotStats) {
-      setSnapshotStats(null); // ปิดโหมด ล้างข้อมูลทิ้ง
+      setSnapshotStats(null); 
     } else {
-      // ถ่ายภาพข้อมูล finalStats ปัจจุบันเก็บไว้ (Deep Copy)
       setSnapshotStats(JSON.parse(JSON.stringify(finalStats.breakdown)));
     }
   };
@@ -100,56 +145,11 @@ export default function App() {
   };
 
   const handleDeletePreset = (id, e) => {
-    e.stopPropagation(); // ป้องกันไม่ให้คลิกทะลุไปโดนปุ่มโหลด Preset
-
-    // เด้งหน้าต่างแจ้งเตือนให้ผู้ใช้ยืนยันก่อน
+    e.stopPropagation(); 
     const isConfirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบ Preset นี้?\n(ข้อมูลที่ลบไปแล้วจะไม่สามารถกู้คืนได้)");
-
-    // ถ้าผู้ใช้กด "ตกลง" (OK) ถึงจะทำการลบ state
     if (isConfirmed) {
       setPresets(presets.filter(p => p.id !== id));
     }
-  };
-
-  const getElementColorClass = (element) => {
-    const el = element?.toUpperCase();
-    if (el === 'ATTACK') return 'text-red-500';
-    if (el === 'MAGIC') return 'text-blue-500';
-    if (el === 'UNIVERSAL') return 'text-purple-500';
-    if (el === 'DEFENSE') return 'text-amber-700';
-    if (el === 'SUPPORT') return 'text-yellow-500';
-    return 'text-(--text-main)';
-  };
-
-  const getElementBgClass = (element) => {
-    const el = element?.toUpperCase();
-    if (el === 'ATTACK') return 'bg-red-500/10 border-red-500/30';
-    if (el === 'MAGIC') return 'bg-blue-500/10 border-blue-500/30';
-    if (el === 'UNIVERSAL') return 'bg-purple-500/10 border-purple-500/30';
-    if (el === 'DEFENSE') return 'bg-amber-700/10 border-amber-700/30';
-    if (el === 'SUPPORT') return 'bg-yellow-500/10 border-yellow-500/30';
-    return 'bg-gray-500/10 border-gray-500/30';
-  };
-
-  const getTypeColorClass = (t) => {
-    const type = t?.toUpperCase();
-    if (type === 'ATTACK') return 'text-red-500';
-    if (type === 'MAGIC') return 'text-blue-500';
-    return 'text-(--text-main)';
-  };
-
-  const getGradeColorClass = (grade) => {
-    const g = grade?.toUpperCase();
-    if (g === 'LEGEND') return 'text-(--color-legend)';
-    if (g === 'RARE') return 'text-(--color-rare)';
-    return 'text-(--color-normal)';
-  };
-
-  const getGradeBgClass = (grade) => {
-    const g = grade?.toUpperCase();
-    if (g === 'LEGEND') return 'bg-(--color-legend)/10 border-(--color-legend)/30';
-    if (g === 'RARE') return 'bg-(--color-rare)/10 border-(--color-rare)/30';
-    return 'bg-(--color-normal)/10 border-(--color-normal)/30';
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -178,13 +178,14 @@ export default function App() {
               </div>
               <div className="p-6 flex flex-col gap-6">
 
-                {/* --- 🌟 ส่วนแสดงรูปภาพ Hero 🌟 --- */}
                 <div key={activeHero.name} className="flex flex-col items-center justify-center -mt-2 animate-hero-swap">
-
                   <div className={`relative w-[120px] aspect-[156/194] md:w-[140px] rounded-2xl overflow-hidden border-2 shadow-lg flex items-center justify-center transition-colors duration-300 ${getGradeBgClass(activeHero.grade)}`}>
                     <img
                       src={`/heroes/${activeHero.name}.png`}
                       alt={activeHero.name}
+                      // 🌟 OPTIMIZATION: Critical image rendering boost
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-contain z-10 transition-transform duration-500 hover:scale-110 drop-shadow-md"
                       onError={(e) => {
                         e.target.onerror = null;
@@ -195,19 +196,17 @@ export default function App() {
                     <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent z-0"></div>
                   </div>
 
-                  {/* แสดงชื่อตัวละครใต้รูป */}
                   <h3
                     className={`mt-4 uppercase tracking-widest transition-colors ${getGradeColorClass(activeHero.grade)}`}
                     style={{
                       fontFamily: '"Press Start 2P", monospace',
                       fontSize: '1rem',
-                      textShadow: '0 0 8px currentColor, 0 0 15px currentColor' // สร้างแสงนีออนจากสีหลัก
+                      textShadow: '0 0 8px currentColor, 0 0 15px currentColor' 
                     }}
                   >
                     {activeHero.name}
                   </h3>
                 </div>
-                {/* ---------------------------------- */}
 
                 <div className="relative" ref={dropdownRef}>
                   <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1">Search Hero</label>
@@ -218,9 +217,9 @@ export default function App() {
                   {isDropdownOpen && (
                     <div className="glass-dropdown-menu absolute top-full mt-2 left-0 w-full overflow-hidden flex flex-col z-[100]">
 
-                      {/* --- 🌟 แท็บสลับโหมด List / Grid 🌟 --- */}
                       <div className="flex justify-end gap-1.5 p-2 border-b border-(--border-color) bg-black/5 dark:bg-white/5">
                         <button
+                          type="button"
                           onClick={(e) => { e.preventDefault(); setSearchViewMode('list'); }}
                           className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${searchViewMode === 'list' ? 'bg-(--accent) text-white shadow-md' : 'text-(--text-muted) hover:bg-black/10 dark:hover:bg-white/10'}`}
                           title="List View"
@@ -228,6 +227,7 @@ export default function App() {
                           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
                         </button>
                         <button
+                          type="button"
                           onClick={(e) => { e.preventDefault(); setSearchViewMode('grid'); }}
                           className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${searchViewMode === 'grid' ? 'bg-(--accent) text-white shadow-md' : 'text-(--text-muted) hover:bg-black/10 dark:hover:bg-white/10'}`}
                           title="Grid View"
@@ -236,15 +236,14 @@ export default function App() {
                         </button>
                       </div>
 
-                      {/* พื้นที่แสดงผลลัพธ์การค้นหา */}
                       <div className="max-h-[320px] overflow-y-auto custom-scrollbar p-2">
                         {filteredHeroes.length > 0 ? (
                           searchViewMode === 'list' ? (
-                            /* ---------------- โหมด 1: List View ---------------- */
                             <div className="flex flex-col gap-1">
                               {filteredHeroes.map(h => (
                                 <button
                                   key={h.name}
+                                  type="button"
                                   className="dropdown-item-hover w-full text-left px-4 py-3 flex justify-between items-center border border-transparent hover:border-(--border-color) rounded-xl"
                                   onClick={() => { setSelectedHeroName(h.name); setIsDropdownOpen(false); setSearchTerm(''); }}
                                 >
@@ -257,19 +256,21 @@ export default function App() {
                               ))}
                             </div>
                           ) : (
-                            /* ---------------- โหมด 2: Grid View (เลือกจากรูป) ---------------- */
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                               {filteredHeroes.map(h => (
                                 <button
                                   key={h.name}
+                                  type="button"
                                   onClick={() => { setSelectedHeroName(h.name); setIsDropdownOpen(false); setSearchTerm(''); }}
                                   className={`relative aspect-[156/194] rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:z-10 shadow-sm group ${getGradeBgClass(h.grade)}`}
                                   title={h.name}
                                 >
-                                  {/* รูปภาพตัวละคร */}
                                   <img
                                     src={`/heroes/${h.name}.png`}
                                     alt={h.name}
+                                    // 🌟 OPTIMIZATION: Critical for grid views with many images
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-contain bg-black/10 dark:bg-black/40 group-hover:brightness-110 transition-all"
                                     onError={(e) => {
                                       e.target.onerror = null;
@@ -277,7 +278,6 @@ export default function App() {
                                       e.target.className = 'w-8 h-8 m-auto opacity-20 grayscale mt-6';
                                     }}
                                   />
-                                  {/* ป้ายชื่อด้านล่างรูป */}
                                   <div className="absolute inset-x-0 bottom-0 bg-black/70 backdrop-blur-md px-1 py-1.5 border-t border-white/10">
                                     <span className={`block text-[9px] font-bold text-center truncate tracking-wider ${getGradeColorClass(h.grade)}`}>
                                       {h.name}
@@ -298,16 +298,12 @@ export default function App() {
                   )}
                 </div>
 
-                {/* แถว Level และ Trans */}
                 <div className="flex gap-4 w-full">
-
-                  {/* กล่อง Level: เพิ่ม min-w-0 */}
                   <div className="flex-1 min-w-0">
                     <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1 truncate">Level</label>
                     <div className="w-full bg-(--input-bg) text-red-500 text-center border border-(--border-color) rounded-2xl py-3 cursor-not-allowed font-bold text-sm shadow-[inset_0_1px_1px_var(--glass-inner)] truncate">30 (MAX)</div>
                   </div>
 
-                  {/* กล่อง Trans */}
                   <div className="flex-1 min-w-0">
                     <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1 truncate">Trans</label>
                     <div className="relative w-full">
@@ -324,7 +320,6 @@ export default function App() {
                       />
                     </div>
                   </div>
-
                 </div>
 
                 <div>
@@ -371,30 +366,24 @@ export default function App() {
                   const isSpd = statKey === 'spd';
 
                   const label = isAtk ? 'Attack' : isDef ? 'Defense' : isHp ? 'HP' : 'Speed';
-
-                  // กำหนดสีจุดด้านหน้า Speed เป็นสีเหลืองให้ตรงกับ Final Stats
                   const colorClass = isAtk ? 'bg-red-500' : isDef ? 'bg-blue-500' : isHp ? 'bg-green-500' : 'bg-yellow-500';
-
-                  // ดึงค่า Base Speed จาก activeHero (DATA.csv)
+                  
                   const baseValue = isAtk ? activeHero.baseAtk :
                     isDef ? activeHero.baseDef :
                       isHp ? activeHero.baseHp :
                         activeHero.baseSpd;
 
-                  // สำหรับ Speed จะไม่มีค่า Transcend และ Potential Bonus
                   const transBonus = isSpd ? 0 : (isAtk ? finalStats.tAtk : isDef ? finalStats.tDef : finalStats.tHp);
                   const potenValue = isSpd ? 0 : (isAtk ? finalStats.pAtk : isDef ? finalStats.pDef : finalStats.pHp);
 
                   return (
                     <div key={statKey} className="flex flex-col md:flex-row md:items-center justify-between bg-(--input-bg) hover:bg-(--hover-bg) transition-colors p-4 rounded-2xl border border-(--border-color) gap-4 md:gap-0 shadow-[inset_0_1px_1px_var(--glass-inner)]">
 
-                      {/* 1. Stat Label & Icon Color */}
                       <div className="flex items-center gap-3 w-full md:w-1/4">
                         <div className={`w-1.5 h-6 rounded-full ${colorClass}`}></div>
                         <span className="font-bold text-(--text-main)">{label}</span>
                       </div>
 
-                      {/* 2. Base Value (ดึงจาก CSV) */}
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Base</span>
                         <span className={`arcade-value-mini ${isDarkMode ? '' : '!text-slate-700 ![text-shadow:none]'}`}>
@@ -402,7 +391,6 @@ export default function App() {
                         </span>
                       </div>
 
-                      {/* 3. Transcend Bonus */}
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Trans</span>
                         <span
@@ -413,12 +401,11 @@ export default function App() {
                         </span>
                       </div>
 
-                      {/* 4. Potential Level (Stepper) */}
                       <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Level</span>
                         <div className={`flex items-center bg-(--bg-color) border border-(--border-color) rounded-lg overflow-hidden shadow-sm h-8 w-24 ${isSpd ? 'opacity-20 grayscale pointer-events-none' : ''}`}>
-                          {/* ปุ่มลบ (-) */}
                           <button
+                            type="button"
                             onClick={() => setPotentials({ ...potentials, [statKey]: Math.max(0, potentials[statKey] - 1) })}
                             disabled={potentials[statKey] <= 0}
                             className="w-8 h-full flex items-center justify-center text-(--text-main) hover:bg-(--hover-bg) active:bg-(--border-color)"
@@ -426,7 +413,6 @@ export default function App() {
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 12H4" /></svg>
                           </button>
 
-                          {/* ช่อง Input ที่พิมพ์ได้ */}
                           <input
                             type="number"
                             className={`flex-1 w-full h-full text-center bg-(--input-bg) border-x border-(--border-color) focus:outline-none hide-spin-button !text-[16px] transition-colors ${isDarkMode ? 'arcade-value-mini' : 'text-slate-800 font-bold'}`}
@@ -436,10 +422,9 @@ export default function App() {
                             onChange={(e) => {
                               let val = parseInt(e.target.value, 10);
                               if (isNaN(val) || val < 0) val = 0;
-                              if (val > 30) val = 30; // ล็อกไม่ให้พิมพ์เกิน 30
+                              if (val > 30) val = 30; 
                               setPotentials({ ...potentials, [statKey]: val });
                             }}
-                            // เพิ่ม onKeyDown เพื่อสกัดกั้นการพิมพ์เครื่องหมายต่างๆ ทิ้งไปก่อนที่จะลงกล่อง
                             onKeyDown={(e) => {
                               if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
                                 e.preventDefault();
@@ -447,8 +432,8 @@ export default function App() {
                             }}
                           />
 
-                          {/* ปุ่มบวก (+) */}
                           <button
+                            type="button"
                             onClick={() => setPotentials({ ...potentials, [statKey]: Math.min(30, potentials[statKey] + 1) })}
                             disabled={potentials[statKey] >= 30}
                             className="w-8 h-full flex items-center justify-center text-(--text-main) hover:bg-(--hover-bg) active:bg-(--border-color)"
@@ -458,7 +443,6 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* 5. Potential Additional Value */}
                       <div className="w-full md:w-[15%] flex justify-between md:justify-end items-center pr-2">
                         <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Poten Add</span>
                         <span
@@ -473,7 +457,6 @@ export default function App() {
                   );
                 })}
 
-                {/* 🌟 เพิ่มส่วน Total Raw Stats สรุปยอดรวมตรงนี้ 🌟 */}
                 <div className="mt-2 pt-5 border-t border-(--border-color) flex flex-col gap-3">
                   <div className="flex justify-between items-end px-1">
                     <span className="text-[11px] text-(--text-muted) font-bold tracking-widest uppercase flex items-center gap-1.5">
@@ -494,7 +477,6 @@ export default function App() {
                       >
                         {((activeHero.baseAtk || 0) + (finalStats.tAtk || 0) + (finalStats.pAtk || 0)).toLocaleString()}
                       </span>
-                      {/* โชว์ส่วนต่าง (+) จาก Trans และ Poten */}
                       <div className="h-3 mt-1.5 flex items-center justify-center">
                         {((finalStats.tAtk || 0) + (finalStats.pAtk || 0)) > 0 && (
                           <span className="text-emerald-500 font-bold tracking-widest drop-shadow-[0_0_2px_rgba(16,185,129,0.5)]" style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.55rem' }}>
@@ -515,7 +497,6 @@ export default function App() {
                       >
                         {((activeHero.baseDef || 0) + (finalStats.tDef || 0) + (finalStats.pDef || 0)).toLocaleString()}
                       </span>
-                      {/* โชว์ส่วนต่าง (+) จาก Trans และ Poten */}
                       <div className="h-3 mt-1.5 flex items-center justify-center">
                         {((finalStats.tDef || 0) + (finalStats.pDef || 0)) > 0 && (
                           <span className="text-emerald-500 font-bold tracking-widest drop-shadow-[0_0_2px_rgba(16,185,129,0.5)]" style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.55rem' }}>
@@ -536,7 +517,6 @@ export default function App() {
                       >
                         {((activeHero.baseHp || 0) + (finalStats.tHp || 0) + (finalStats.pHp || 0)).toLocaleString()}
                       </span>
-                      {/* โชว์ส่วนต่าง (+) จาก Trans และ Poten */}
                       <div className="h-3 mt-1.5 flex items-center justify-center">
                         {((finalStats.tHp || 0) + (finalStats.pHp || 0)) > 0 && (
                           <span className="text-emerald-500 font-bold tracking-widest drop-shadow-[0_0_2px_rgba(16,185,129,0.5)]" style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '0.55rem' }}>
@@ -546,7 +526,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* กล่องรวม SPD (ไม่มีโบนัสในส่วนนี้) */}
+                    {/* กล่องรวม SPD */}
                     <div className="bg-(--input-bg) border border-(--border-color) rounded-2xl p-4 flex flex-col items-center justify-center shadow-inner relative overflow-hidden group transition-all hover:-translate-y-0.5">
                       <div className="absolute inset-0 bg-yellow-500/5 group-hover:bg-yellow-500/15 transition-colors"></div>
                       <span className="text-xs md:text-sm font-bold text-yellow-500 mb-2 uppercase tracking-widest">Speed</span>
@@ -561,7 +541,6 @@ export default function App() {
                     </div>
                   </div>
                 </div>
-                {/* ---------------------------------------------------- */}
 
               </div>
             </div>
@@ -576,15 +555,12 @@ export default function App() {
           </div>
           <div className="relative z-10 flex flex-col h-full">
 
-            {/* 🌟 หัวตารางเพิ่มปุ่ม Snap Stats 🌟 */}
             <div className="bg-(--card-header) p-3 sm:p-4 border-b border-(--border-color) rounded-t-3xl flex justify-between items-center">
               <h2 className="text-(--text-muted) font-semibold tracking-widest text-center text-xs uppercase pl-2">Final Combat Stats</h2>
 
-              {/* Wrapper สำหรับผูกปุ่มและ Tooltip เข้าด้วยกัน */}
               <div className="relative group">
-
-                {/* ปุ่ม Toggle Compare Mode */}
                 <button
+                  type="button"
                   onClick={handleToggleSnapshot}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${snapshotStats
                     ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/20'
@@ -604,7 +580,6 @@ export default function App() {
                   )}
                 </button>
 
-                {/* กล่อง Glassmorphism Tooltip */}
                 <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 w-52 bg-white dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-(--border-color) shadow-2xl rounded-xl p-3 text-center translate-y-2 group-hover:translate-y-0">
                   <span className="text-[10px] text-slate-700 dark:text-(--text-main) font-bold leading-relaxed block tracking-wide">
                     {snapshotStats
@@ -612,12 +587,10 @@ export default function App() {
                       : "Snap current stats to compare them when you change equipment."}
                   </span>
                 </div>
-
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-(--border-color)">
-              {/* คอลัมน์ที่ 1 */}
               <div className="p-4 sm:p-6 space-y-2">
                 {[
                   { label: 'Attack', color: 'text-red-500', key: 'atk', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4" /></svg> },
@@ -627,7 +600,6 @@ export default function App() {
                 ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={false} textSize="text-[15px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} />))}
               </div>
 
-              {/* คอลัมน์ที่ 2 */}
               <div className="p-4 sm:p-6 space-y-2">
                 {[
                   { label: 'Crit Rate', color: 'text-red-500', key: 'critRate', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22a10 10 0 100-20 10 10 0 000 20zM12 8v8M8 12h8" /></svg> },
@@ -636,7 +608,6 @@ export default function App() {
                 ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-sm" snapStat={snapshotStats ? snapshotStats[item.key] : null} />))}
               </div>
 
-              {/* คอลัมน์ที่ 3 */}
               <div className="p-4 sm:p-6 space-y-2">
                 {[
                   { label: 'Block Rate', color: 'text-blue-400', key: 'block', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m8 4v10M4 7v10l8 4" /></svg> },
@@ -667,7 +638,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* SECTION 3: EQUIPMENT SLOTS (Component แยก) */}
         <EquipmentSection
           equipment={equipment}
           setEquipment={setEquipment}
@@ -675,7 +645,6 @@ export default function App() {
           heroType={activeHero.type}
         />
 
-        {/* เพิ่มกล่องเปล่า (Spacer) ตรงนี้ เพื่อดันให้เว็บมีพื้นที่ด้านล่างเหลือสำหรับ Dropdown */}
         <div className="h-64 w-full shrink-0 pointer-events-none"></div>
 
       </div>

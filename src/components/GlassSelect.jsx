@@ -9,21 +9,24 @@ export const GlassSelect = ({
   className = "",
   compact = false,
   centered = false,
-  dropdownPosition = "down" // 🌟 1. เพิ่ม Prop ใหม่ตรงนี้
+  dropdownPosition = "down"
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
 
-  // ปิดเมนูเมื่อคลิกข้างนอก
+  // 🌟 OPTIMIZATION: Attach event listener ONLY when the dropdown is actually open
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
+    
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const selectedOption = options.find(opt => String(opt.value) === String(value));
 
@@ -32,7 +35,7 @@ export const GlassSelect = ({
       className={`relative w-full ${className} ${isOpen ? 'z-[100]' : 'z-10'}`} 
       ref={containerRef}
     >
-      {/* 🌟 Changed from <div> to <button> for native focus and accessibility 🌟 */}
+      {/* 🌟 OPTIMIZATION: Use <button> for native focus/accessibility and prevent accidental text selection */}
       <button 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -51,7 +54,6 @@ export const GlassSelect = ({
         </div>
       </button>
 
-      {/* 🌟 2. อัปเดตคลาสให้กางขึ้นหรือลงตามค่า dropdownPosition 🌟 */}
       {isOpen && (
         <div className={`glass-dropdown-menu absolute w-full left-0 z-[200] ${
           dropdownPosition === 'up' 
