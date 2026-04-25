@@ -19,8 +19,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [transcend, setTranscend] = useState(6);
-  const [ring, setRing] = useState(10);
+  const [transcend, setTranscend] = useState(0);
+  const [ring, setRing] = useState(0);
   const [potentials, setPotentials] = useState({ atk: 0, def: 0, hp: 0, spd: 0 });
 
   const [snapshotStats, setSnapshotStats] = useState(null);
@@ -63,7 +63,9 @@ export default function App() {
       .then(res => { if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`); return res.text(); })
       .then(text => {
         const parsed = parseCSVData(text);
-        if (parsed.length > 0) { setHeroDataList(parsed); setSelectedHeroName(parsed[0].name); }
+        if (parsed.length > 0) {
+          setHeroDataList(parsed);
+        }
       })
       .catch(err => setError(err.message))
       .finally(() => setIsLoading(false));
@@ -128,18 +130,6 @@ export default function App() {
       <div className="max-w-[1400px] mx-auto space-y-8 relative">
         <TopBar presets={presets} onSavePreset={handleSavePreset} onLoadPreset={handleLoadPreset} onDeletePreset={handleDeletePreset} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} />
 
-        <div className="flex justify-end px-2 -mb-4 relative z-40">
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 text-rose-500 border border-rose-500/30 rounded-xl hover:bg-rose-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest shadow-sm"
-          >
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Reset All
-          </button>
-        </div>
-
         <div className="flex flex-col xl:flex-row gap-8">
           <HeroSetupProfile
             activeHero={activeHero}
@@ -149,6 +139,7 @@ export default function App() {
             setTranscend={setTranscend}
             ring={ring}
             setRing={setRing}
+            onReset={handleReset}
           />
           <BaseStatsPanel
             activeHero={activeHero}

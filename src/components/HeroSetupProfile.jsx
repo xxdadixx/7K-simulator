@@ -52,7 +52,8 @@ export const HeroSetupProfile = React.memo(({
   transcend,
   setTranscend,
   ring,
-  setRing
+  setRing,
+  onReset
 }) => {
   // 🌟 ย้าย State ย่อยๆ ออกมาจาก App.jsx มาไว้ที่นี่
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,14 +61,14 @@ export const HeroSetupProfile = React.memo(({
   const [searchViewMode, setSearchViewMode] = useState('grid');
   const dropdownRef = useRef(null);
 
-  const filteredHeroes = useMemo(() => 
-    heroDataList.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())), 
-  [heroDataList, searchTerm]);
+  const filteredHeroes = useMemo(() =>
+    heroDataList.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase())),
+    [heroDataList, searchTerm]);
 
   useEffect(() => {
     if (!isDropdownOpen) return;
-    const handleClickOutside = (e) => { 
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false); 
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setIsDropdownOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -80,12 +81,24 @@ export const HeroSetupProfile = React.memo(({
         <div className="absolute inset-0 bg-(--card-bg) backdrop-blur-3xl border border-(--border-color) shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
       </div>
       <div className="relative z-10 flex flex-col h-full">
-        <div className="bg-(--card-header) p-4 border-b border-(--border-color) rounded-t-3xl">
-          <h2 className="text-(--text-muted) font-semibold tracking-widest text-center text-xs uppercase">Hero Setup</h2>
+        <div className="bg-(--card-header) p-3 sm:p-4 border-b border-(--border-color) rounded-t-3xl flex justify-between items-center">
+          <h2 className="text-(--text-muted) font-semibold tracking-widest text-xs uppercase pl-2">Hero Setup</h2>
+
+          <button
+            type="button"
+            onClick={onReset}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 text-rose-500 border border-rose-500/30 rounded-xl hover:bg-rose-500 hover:text-white transition-all font-bold text-[10px] uppercase tracking-widest shadow-sm"
+          >
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reset
+          </button>
         </div>
+
         <div className="p-6 flex flex-col gap-6">
 
-        <div key={activeHero.name} className="flex flex-col items-center justify-center -mt-2 animate-hero-swap">
+          <div key={activeHero.name} className="flex flex-col items-center justify-center -mt-2 animate-hero-swap">
             <div className={`relative w-[120px] aspect-[156/194] md:w-[140px] rounded-2xl overflow-hidden border-2 shadow-lg flex items-center justify-center transition-colors duration-300 ${getGradeBgClass(activeHero.grade)}`}>
               <img
                 src={activeHero.name === 'Unselected' ? '/favicon.svg' : `/heroes/${activeHero.name}.png`}
@@ -161,20 +174,20 @@ export const HeroSetupProfile = React.memo(({
                 {activeHero.name === 'Unselected' ? '-' : '30 (MAX)'}
               </div>
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1 truncate">Trans</label>
               <div className="relative w-full">
-                <GlassSelect 
-                  value={transcend} 
-                  onChange={(val) => setTranscend(Number(val))} 
+                <GlassSelect
+                  value={transcend}
+                  onChange={(val) => setTranscend(Number(val))}
                   /* 🌟 3. เพิ่ม { label: 'None', value: 0 } ลงไปใน Trans 🌟 */
                   options={[
                     { label: 'None', value: 0, className: 'text-(--text-muted)' },
                     ...[...Array(12)].map((_, i) => { const val = i + 1; return { label: `★ ${val}`, value: val, className: val <= 6 ? 'text-[#3b82f6]' : 'text-[#ef4444]' }; })
-                  ]} 
-                  className={getTransColorClass(transcend)} 
-                  centered={true} 
+                  ]}
+                  className={getTransColorClass(transcend)}
+                  centered={true}
                 />
               </div>
             </div>
@@ -182,15 +195,15 @@ export const HeroSetupProfile = React.memo(({
 
           <div>
             <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1">Accessory Ring</label>
-            <GlassSelect 
-              value={ring} 
-              onChange={(val) => setRing(Number(val))} 
+            <GlassSelect
+              value={ring}
+              onChange={(val) => setRing(Number(val))}
               /* 🌟 4. เพิ่ม { label: 'None', value: 0 } ลงไปใน Ring 🌟 */
               options={[
                 { label: 'None', value: 0, className: 'text-(--text-muted)' },
                 ...RING_OPTIONS.map(r => ({ label: r.label, value: r.value }))
-              ]} 
-              centered={true} 
+              ]}
+              centered={true}
             />
           </div>
 
