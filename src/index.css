@@ -483,10 +483,13 @@
   inset: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
   background-size: 100% 4px;
-  z-index: 9999;
+  
+  /* เปลี่ยนจาก 9999 เป็น 0 เพื่อดันเส้นสแกนให้ไปอยู่ข้างหลัง UI และรูปภาพ */
+  z-index: 0; 
+  
   pointer-events: none;
   
-  /* ปิดการแสดงผลใน Light Mode */
+  /* ... โค้ดส่วนอื่นๆ คงไว้เหมือนเดิม ... */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.4s ease, visibility 0.4s ease;

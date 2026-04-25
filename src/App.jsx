@@ -166,6 +166,36 @@ export default function App() {
                 <h2 className="text-(--text-muted) font-semibold tracking-widest text-center text-xs uppercase">Hero Setup</h2>
               </div>
               <div className="p-6 flex flex-col gap-6">
+
+                {/* --- 🌟 ส่วนแสดงรูปภาพ Hero 🌟 --- */}
+                <div className="flex flex-col items-center justify-center -mt-2">
+
+                  {/* ปรับขนาดกล่องให้พอดีกับสัดส่วนภาพแนวตั้ง (ประมาณ w-28 ถึง w-32) และล็อก aspect-ratio */}
+                  <div className={`relative w-[120px] aspect-[156/194] md:w-[140px] rounded-2xl overflow-hidden border-2 shadow-lg flex items-center justify-center transition-all ${getGradeBgClass(activeHero.grade)}`}>
+
+                    <img
+                      src={`/heroes/${activeHero.name}.png`}
+                      alt={activeHero.name}
+                      /* เปลี่ยนจาก object-cover เป็น object-contain เพื่อไม่ให้ภาพถูกตัดขอบ */
+                      className="w-full h-full object-contain z-10 transition-transform duration-500 hover:scale-110 drop-shadow-md"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/favicon.svg';
+                        e.target.className = 'w-10 h-10 opacity-20 grayscale';
+                      }}
+                    />
+
+                    {/* เอฟเฟกต์เงาไล่ระดับด้านล่างของรูป */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent z-0"></div>
+                  </div>
+
+                  {/* แสดงชื่อตัวละครใต้รูป */}
+                  <h3 className={`mt-3 font-bold text-lg tracking-wider uppercase drop-shadow-sm ${getGradeColorClass(activeHero.grade)}`}>
+                    {activeHero.name}
+                  </h3>
+                </div>
+                {/* ---------------------------------- */}
+
                 <div className="relative" ref={dropdownRef}>
                   <label className="text-[11px] text-(--text-muted) font-medium uppercase tracking-wider mb-2 block pl-1">Search Hero</label>
                   <div className="relative">

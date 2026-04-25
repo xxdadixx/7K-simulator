@@ -66,7 +66,7 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
           </div>
 
           {/* Main Stat - จัด Layout ใหม่ออกแบบเป็นตู้ LED แยกฝั่งชัดเจน */}
-          <div className="flex flex-col gap-2 min-w-0 bg-black/20 p-3 rounded-2xl border border-white/5 shadow-inner">
+          <div className="flex flex-col gap-2 min-w-0 bg-(--input-bg) p-3 rounded-2xl border border-(--border-color) shadow-inner transition-colors">
             <label className="text-[11px] text-(--text-muted) font-bold uppercase tracking-wider pl-1">Main Stat</label>
             <div className="flex justify-between items-center gap-3">
               <div className="flex-1">
@@ -81,7 +81,7 @@ export const EquipmentBlock = ({ title, data, onChange, allowedMains }) => {
               {/* ตู้ LED ของ Main Stat */}
               <div className="arcade-led-board min-w-[100px]">
                 <span
-                  key={data.mainStat.value} /* ตัวแปรนี้เปลี่ยน Animation จะเล่น */
+                  key={data.mainStat.value}
                   className="arcade-value-main animate-value-change"
                 >
                   {formatStatValue(data.mainStat.type, data.mainStat.value)}
