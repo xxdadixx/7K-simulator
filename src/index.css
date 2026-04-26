@@ -179,10 +179,19 @@
     background-size: 200% 200%;
     pointer-events: none;
     
-    /* 🌟 เพิ่มโค้ด 3 บรรทัดนี้เพื่อแก้ปัญหากะพริบตอน Scroll 🌟 */
-    transform: translateZ(0); /* Force GPU Acceleration */
-    backface-visibility: hidden; /* Prevent clipping/flickering */
-    will-change: transform, background-position; /* Optimize render performance */
+    /* 🌟 ใช้ translate3d เพื่อเรียกใช้ Hardware Acceleration ขั้นสูงสุด */
+    transform: translate3d(0, 0, 0); 
+    backface-visibility: hidden; 
+    
+    /* 🌟 เพิ่ม filter เข้าไป เพื่อบังคับให้ GPU จำค่าเบลอไว้ตลอดเวลาแม้เมาส์จะออกนอกจอ */
+    will-change: transform, filter; 
+    
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    contain: paint;
+    
+    /* 🌟 เพิ่ม isolation เพื่อบังคับให้สร้าง Layer ใหม่เสมอ ป้องกันเบราว์เซอร์ยุบรวมเลเยอร์ */
+    isolation: isolate; 
   }
 
   /* แบบที่ 1: สีเขียว/ฟ้า, ช้าๆ, ลื่นไหล */
