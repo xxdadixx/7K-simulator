@@ -48,8 +48,11 @@ export const AnimatedStatRow = React.memo(({ item, stat, isPercent, textSize = "
 
       <div className="flex flex-col items-end z-10">
         <div className="flex items-baseline">
-          {/* 🌟 บังคับการสลับสีด้วย isDarkMode อย่างเด็ดขาด 🌟 */}
-          <span className={`font-black tracking-widest ${textSize} ${isDarkMode ? 'text-white drop-shadow-md ![text-shadow:0_0_8px_rgba(255,255,255,0.4)]' : 'text-slate-800 drop-shadow-sm ![text-shadow:none]'} ${animate ? 'animate-value-change' : 'transition-colors duration-300'}`} style={{ fontFamily: '"Press Start 2P", monospace' }}>
+          {/* 🌟 ลบ !important ออก และเปลี่ยนไปใช้ drop-shadow เพื่อให้ Animation ทำงานได้เต็มที่ 🌟 */}
+          <span 
+            className={`font-black tracking-widest ${textSize} ${isDarkMode ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]' : 'text-slate-800 drop-shadow-sm'} ${animate ? 'animate-value-change text-amber-500 dark:text-amber-300' : 'transition-colors duration-300'}`} 
+            style={{ fontFamily: '"Press Start 2P", monospace' }}
+          >
             {isPercent ? `${finalValue}%` : finalValue.toLocaleString()}
           </span>
           {diffElement}

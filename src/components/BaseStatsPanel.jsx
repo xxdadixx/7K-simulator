@@ -156,8 +156,8 @@ export const BaseStatsPanel = React.memo(({
                   
                   <span className={`relative z-10 text-xs md:text-sm font-bold text-${stat.colorClass}-500 mb-2 uppercase tracking-widest`}>{stat.label}</span>
                   
-                  {/* 🌟 สลับสี: โหมดสว่าง=เทาเข้ม / โหมดมืด=ขาว 🌟 */}
-                  <span key={stat.val} className={`relative z-10 animate-value-change transition-colors tracking-widest ${isDarkMode ? 'text-white ![text-shadow:0_0_8px_rgba(255,255,255,0.4)] drop-shadow-md' : 'text-slate-800 ![text-shadow:none] drop-shadow-sm'}`} style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '1.1rem' }}>
+                  {/* 🌟 ลบ !important ออก และเปลี่ยนไปใช้ drop-shadow เช่นเดียวกัน 🌟 */}
+                  <span key={stat.val} className={`relative z-10 animate-value-change transition-colors tracking-widest ${isDarkMode ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]' : 'text-slate-800 drop-shadow-sm'}`} style={{ fontFamily: '"Press Start 2P", monospace', fontSize: '1.1rem' }}>
                     {stat.val.toLocaleString()}
                   </span>
 

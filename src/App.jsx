@@ -162,6 +162,7 @@ export default function App() {
             finalStats={finalStats}
             snapshotStats={snapshotStats}
             handleToggleSnapshot={handleToggleSnapshot}
+            isDarkMode={isDarkMode} // 🌟 แก้ไขตรงนี้ ส่งค่าไปให้แล้วครับ 🌟
           />
 
           <EquipmentSection

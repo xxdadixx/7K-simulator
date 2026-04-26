@@ -5,7 +5,7 @@ export const FinalCombatStats = React.memo(({
   finalStats,
   snapshotStats,
   handleToggleSnapshot,
-  isDarkMode // 🌟 รับตัวแปร isDarkMode เข้ามา 🌟
+  isDarkMode={isDarkMode}
 }) => {
   return (
     <div className="relative z-50 flex flex-col">
