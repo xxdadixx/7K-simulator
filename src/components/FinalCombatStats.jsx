@@ -4,7 +4,8 @@ import { AnimatedStatRow } from './AnimatedStatRow';
 export const FinalCombatStats = React.memo(({
   finalStats,
   snapshotStats,
-  handleToggleSnapshot
+  handleToggleSnapshot,
+  isDarkMode // 🌟 รับตัวแปร isDarkMode เข้ามา 🌟
 }) => {
   return (
     <div className="relative z-50 flex flex-col">
@@ -47,7 +48,7 @@ export const FinalCombatStats = React.memo(({
               { label: 'Defense', color: 'text-blue-500', key: 'def', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> },
               { label: 'HP', color: 'text-green-500', key: 'hp', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> },
               { label: 'Speed', color: 'text-yellow-500', key: 'spd', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> }
-            ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={false} textSize="text-[18px] sm:text-[22px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} />))}
+            ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={false} textSize="text-[18px] sm:text-[22px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} isDarkMode={isDarkMode} />))}
           </div>
 
           <div className="p-4 sm:p-6 space-y-3">
@@ -55,7 +56,7 @@ export const FinalCombatStats = React.memo(({
               { label: 'Crit Rate', color: 'text-red-500', key: 'critRate', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22a10 10 0 100-20 10 10 0 000 20zM12 8v8M8 12h8" /></svg> },
               { label: 'Crit Damage', color: 'text-red-500', key: 'critDmg', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /></svg> },
               { label: 'Weakness Hit', color: 'text-purple-500', key: 'weakness', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> }
-            ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-base sm:text-[18px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} />))}
+            ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-base sm:text-[18px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} isDarkMode={isDarkMode} />))}
           </div>
 
           <div className="p-4 sm:p-6 space-y-3">
@@ -64,20 +65,19 @@ export const FinalCombatStats = React.memo(({
               { label: 'Dmg Reduction', color: 'text-blue-400', key: 'dmgReduc', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM12 8v8M9 13l3 3 3-3" /></svg> },
               { label: 'Effect Hit', color: 'text-cyan-500', key: 'effHit', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 3l2.286 6.857L22 12l-6.714 2.143L13 21l-2.286-6.857L4 12l6.714-2.143L13 3z" /></svg> },
               { label: 'Effect Res', color: 'text-cyan-500', key: 'effRes', icon: <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> }
-            ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-base sm:text-[18px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} />))}
+            ].map(item => (<AnimatedStatRow key={item.key} item={item} stat={finalStats.breakdown[item.key]} isPercent={true} textSize="text-base sm:text-[18px]" snapStat={snapshotStats ? snapshotStats[item.key] : null} isDarkMode={isDarkMode} />))}
           </div>
 
           <div className="p-6 flex flex-col h-full">
             <div className="flex-1 bg-(--input-bg) border border-(--border-color) rounded-2xl p-4 flex flex-col shadow-inner relative overflow-hidden">
               <label className="text-[10px] text-(--text-muted) font-bold uppercase tracking-widest mb-4 block text-center">Active Set Bonus</label>
-              
+
               {finalStats.activeSetDetails && finalStats.activeSetDetails.length > 0 ? (
                 <div className="w-full space-y-3 flex-1 pb-2">
                   {finalStats.activeSetDetails.map((set, idx) => (
-                    
-                    /* 🌟 FIX: ปรับการ์ดให้ใช้ <table> แท้ 100% ล็อคโครงสร้างไม่ให้พังแน่นอน 🌟 */
-                    <div 
-                      key={idx} 
+
+                    <div
+                      key={idx}
                       className="bg-(--card-bg) border border-(--border-color) border-l-[4px] border-l-(--accent) shadow-sm rounded-xl p-3 flex flex-col text-left transition-all"
                     >
                       <table className="w-full border-collapse m-0">
@@ -96,7 +96,7 @@ export const FinalCombatStats = React.memo(({
                           </tr>
                         </tbody>
                       </table>
-                      
+
                       <div className="flex flex-col space-y-1.5 mt-2">
                         {set.effects.map((eff, i) => (
                           <div key={i} className="text-[11px] font-bold text-(--accent) leading-tight flex items-start gap-1.5">

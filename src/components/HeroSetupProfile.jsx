@@ -101,7 +101,7 @@ export const HeroSetupProfile = React.memo(({
   }, []);
 
   return (
-    <div className={`relative w-full xl:w-[30%] flex flex-col transition-all duration-300 ${isDropdownOpen ? 'z-[70]' : 'z-30 hover:z-[70] focus-within:z-[70]'}`}>
+    <div className={`relative w-full xl:w-[30%] flex flex-col transition-all duration-300 ${isDropdownOpen ? 'z-70' : 'z-30 hover:z-70 focus-within:z-70'}`}>
       <div className="absolute inset-0 rounded-3xl shadow-(--glass-shadow) overflow-hidden">
         <div className="aurora-bg aurora-style-1"></div>
         <div className="absolute inset-0 bg-(--card-bg) backdrop-blur-3xl border border-(--border-color) shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
@@ -124,7 +124,7 @@ export const HeroSetupProfile = React.memo(({
               ref={cardRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className={`relative w-[120px] aspect-[156/194] md:w-[140px] rounded-2xl overflow-hidden border-2 shadow-xl flex items-center justify-center ease-out ${getGradeBgClass(activeHero.grade)} ${tilt.scale === 1 ? 'transition-all duration-500' : ''}`}
+              className={`relative w-[120px] aspect-156/194 md:w-[140px] rounded-2xl overflow-hidden border-2 shadow-xl flex items-center justify-center ease-out ${getGradeBgClass(activeHero.grade)} ${tilt.scale === 1 ? 'transition-all duration-500' : ''}`}
               style={{
                 transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${tilt.scale})`,
                 transformStyle: 'preserve-3d', // จำเป็นเพื่อให้เลเยอร์ด้านในมีมิติลอยออกมาได้
@@ -146,7 +146,7 @@ export const HeroSetupProfile = React.memo(({
                   e.target.className = 'w-10 h-10 opacity-20 grayscale';
                 }}
               />
-              <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/80 via-black/30 to-transparent" style={{ transform: 'translateZ(10px)' }}></div>
+              <div className="absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-black/80 via-black/30 to-transparent" style={{ transform: 'translateZ(10px)' }}></div>
             </div>
 
             <style>
@@ -187,7 +187,7 @@ export const HeroSetupProfile = React.memo(({
               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--text-muted)"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg></div>
             </div>
             {isDropdownOpen && (
-              <div className="glass-dropdown-menu absolute top-full mt-2 left-0 w-full overflow-hidden flex flex-col z-[100]">
+              <div className="glass-dropdown-menu absolute top-full mt-2 left-0 w-full overflow-hidden flex flex-col z-100">
                 <div className="flex justify-end gap-1.5 p-2 border-b border-(--border-color) bg-black/5 dark:bg-white/5">
                   <button type="button" onClick={(e) => { e.preventDefault(); setSearchViewMode('list'); }} className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${searchViewMode === 'list' ? 'bg-(--accent) text-white shadow-md' : 'text-(--text-muted) hover:bg-black/10 dark:hover:bg-white/10'}`}>
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -213,7 +213,7 @@ export const HeroSetupProfile = React.memo(({
                     ) : (
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {filteredHeroes.map(h => (
-                          <button key={h.name} type="button" onClick={() => { setSelectedHeroName(h.name); setIsDropdownOpen(false); setSearchTerm(''); }} className={`relative aspect-[156/194] rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:z-10 shadow-sm group ${getGradeBgClass(h.grade)}`}>
+                          <button key={h.name} type="button" onClick={() => { setSelectedHeroName(h.name); setIsDropdownOpen(false); setSearchTerm(''); }} className={`relative aspect-156/194 rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 hover:z-10 shadow-sm group ${getGradeBgClass(h.grade)}`}>
                             <img src={`/heroes/${h.name}.png`} alt={h.name} loading="lazy" decoding="async" className="w-full h-full object-contain bg-black/10 dark:bg-black/40 group-hover:brightness-110 transition-all" onError={(e) => { e.target.onerror = null; e.target.src = '/favicon.svg'; e.target.className = 'w-8 h-8 m-auto opacity-20 grayscale mt-6'; }} />
                             <div className="absolute inset-x-0 bottom-0 bg-black/70 backdrop-blur-md px-1 py-1.5 border-t border-white/10"><span className={`block text-[9px] font-bold text-center truncate tracking-wider ${getGradeColorClass(h.grade)}`}>{h.name}</span></div>
                           </button>

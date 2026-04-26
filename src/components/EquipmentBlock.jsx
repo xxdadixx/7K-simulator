@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion'; // 🌟 นำเข้า Framer Motion 🌟
+import { motion } from 'framer-motion';
 import { SET_OPTIONS, SUBSTAT_BASES } from '../utils/constants';
 import { getSubstatValue, formatStatValue } from '../utils/helpers';
 import { GlassSelect } from './GlassSelect';
+
+// 🌟 สร้างตัวแปรมารับค่าเพื่อแก้ปัญหา ESLint มองไม่เห็น (Fix: no-unused-vars) 🌟
+const MotionDiv = motion.div;
+const MotionButton = motion.button;
 
 export const EquipmentBlock = React.memo(({ title, data, allowedMains, onChange, heroType, isWeapon }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -89,13 +93,12 @@ export const EquipmentBlock = React.memo(({ title, data, allowedMains, onChange,
   const mainStatKeys = allowedMains ? Object.keys(allowedMains) : Object.keys(SUBSTAT_BASES);
 
   return (
-    <div className={`relative flex flex-col h-full min-h-[500px] transition-all duration-300 ${isDropdownOpen ? 'z-[100]' : 'z-10 hover:z-[50] focus-within:z-[50]'}`}>
+    <div className={`relative flex flex-col h-full min-h-[500px] transition-all duration-300 ${isDropdownOpen ? 'z-100' : 'z-10 hover:z-50 focus-within:z-50'}`}>
       <div className="absolute inset-0 rounded-3xl shadow-(--glass-shadow) pointer-events-none">
         <div className="absolute inset-0 bg-(--card-bg) backdrop-blur-3xl border border-(--border-color) shadow-[inset_0_1px_1px_var(--glass-inner)] rounded-3xl transition-colors duration-400"></div>
       </div>
 
       <div className="relative z-20 flex flex-col h-full">
-        {/* Header */}
         <div className="bg-(--card-header) p-4 border-b border-(--border-color) flex justify-between items-center gap-2 rounded-t-3xl">
           <h2 className="text-(--text-main) font-bold tracking-wide text-xs uppercase truncate min-w-0 flex items-center gap-1.5">
             {isWeapon ? '⚔️' : '🛡️'} {title}
@@ -125,7 +128,7 @@ export const EquipmentBlock = React.memo(({ title, data, allowedMains, onChange,
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-[100] glass-dropdown-menu flex flex-col overflow-hidden shadow-2xl border border-(--border-color) rounded-xl origin-top animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 right-0 mt-2 z-100 glass-dropdown-menu flex flex-col overflow-hidden shadow-2xl border border-(--border-color) rounded-xl origin-top animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="flex justify-end gap-1.5 p-2 border-b border-(--border-color) bg-(--card-header)">
                     <button onClick={(e) => { e.preventDefault(); setViewMode('list'); }} className={`p-1.5 rounded-lg transition-colors flex items-center justify-center ${viewMode === 'list' ? 'bg-(--accent) text-white shadow-md' : 'text-(--text-muted) hover:bg-black/10 dark:hover:bg-white/10'}`}>
                       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -135,8 +138,8 @@ export const EquipmentBlock = React.memo(({ title, data, allowedMains, onChange,
                     </button>
                   </div>
 
-                  {/* 🌟 3. ผูกโครงสร้าง List และ Grid เข้าด้วยกันด้วย motion.div layout 🌟 */}
-                  <motion.div 
+                  {/* 🌟 เปลี่ยนมาใช้ตัวแปร MotionDiv และ MotionButton ที่สร้างไว้ 🌟 */}
+                  <MotionDiv 
                     layout 
                     className={`overflow-y-auto custom-scrollbar p-2 ${viewMode === 'list' ? 'flex flex-col gap-1' : 'grid grid-cols-2 gap-3'}`}
                     style={{ maxHeight: '260px' }}
@@ -146,9 +149,9 @@ export const EquipmentBlock = React.memo(({ title, data, allowedMains, onChange,
                       const isSelected = data.set === s;
 
                       return (
-                        <motion.button
-                          layout // 🌟 คำสั่งนี้แหละที่สร้างเวทมนตร์การเคลื่อนไหวอัตโนมัติ 🌟
-                          transition={{ type: "spring", stiffness: 350, damping: 25 }} // ควบคุมความนุ่มนวลของการเด้ง
+                        <MotionButton
+                          layout
+                          transition={{ type: "spring", stiffness: 350, damping: 25 }}
                           key={s}
                           type="button"
                           onClick={() => { onChange({ ...data, set: s }); setIsDropdownOpen(false); }}
@@ -177,16 +180,15 @@ export const EquipmentBlock = React.memo(({ title, data, allowedMains, onChange,
                               </div>
                             </>
                           )}
-                        </motion.button>
+                        </MotionButton>
                       );
                     })}
-                  </motion.div>
+                  </MotionDiv>
                 </div>
               )}
             </div>
           </div>
 
-          {/* ... ส่วนที่เหลือ (Main Stat & Substats) คงเดิม ... */}
           <div className="flex flex-col gap-2 min-w-0 bg-(--input-bg) p-3 rounded-2xl border border-(--border-color) shadow-inner transition-colors">
             <label className="text-[11px] text-(--text-muted) font-bold uppercase tracking-wider pl-1">Main Stat</label>
             <div className="flex justify-between items-center gap-3">

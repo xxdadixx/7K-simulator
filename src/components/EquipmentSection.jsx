@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { WEAPON_MAIN_VALUES, ARMOR_MAIN_VALUES } from '../utils/constants';
 import { EquipmentBlock } from './EquipmentBlock';
 
-// 🌟 OPTIMIZATION: Memoize EquipmentSection
+const MotionDiv = motion.div;
+
 export const EquipmentSection = React.memo(({ equipment, setEquipment, validationMsg, heroType }) => {
   const [eqLayout, setEqLayout] = useState('row');
 
@@ -17,7 +19,6 @@ export const EquipmentSection = React.memo(({ equipment, setEquipment, validatio
     return baseConfig;
   }, [eqLayout]);
 
-  // 🌟 OPTIMIZATION: useCallback ensures the function reference never changes
   const handleEqChange = useCallback((slotName, newData) => {
     setEquipment(prev => ({ ...prev, [slotName]: newData }));
   }, [setEquipment]);
@@ -35,7 +36,6 @@ export const EquipmentSection = React.memo(({ equipment, setEquipment, validatio
           </div>
         </div>
 
-        {/* ส่วนปุ่มสลับโหมด Row / Grid */}
         <div className="flex bg-(--input-bg) p-1 rounded-xl border border-(--border-color)">
           <button 
             onClick={() => setEqLayout('row')} 
@@ -58,17 +58,26 @@ export const EquipmentSection = React.memo(({ equipment, setEquipment, validatio
       <div className={`grid grid-cols-1 md:grid-cols-2 ${eqLayout === 'row' ? 'xl:grid-cols-4' : 'xl:grid-cols-2 max-w-4xl mx-auto'} gap-6 pt-2 relative z-20`}>
         {eqListConfig.map((eq, idx) => {
           const auroraClasses = ['aurora-style-4', 'aurora-style-1', 'aurora-style-2', 'aurora-style-3'];
-          // เช็คว่าเป็น Weapon หรือไม่ (index 0 และ 1 คือ Weapon)
           const isWeaponItem = eq.key.includes('weapon'); 
 
           return (
-            <div key={eq.key} className="relative flex flex-col hover:-translate-y-1 transition-transform duration-300">
+            // 🌟 ลบ CSS Hover เดิมทิ้ง และใช้ whileHover กับ layout แบบแยกความเร็วกัน 🌟
+            <MotionDiv 
+              layout
+              whileHover={{ y: -6 }} // ใช้ Framer Motion ทำเอฟเฟกต์ยกการ์ดแทน Tailwind
+              transition={{ 
+                layout: { type: "spring", stiffness: 350, damping: 30 }, // ความนุ่มตอนบินสลับที่
+                hover: { duration: 0.2 } // ความเร็วตอนเอาเมาส์ชี้
+              }}
+              key={eq.key} 
+              className="relative flex flex-col" // ❌ ลบ transition-transform ออกแล้ว
+              style={{ borderRadius: '1.5rem', zIndex: 10 }} 
+            >
               <div className="absolute inset-0 rounded-3xl shadow-(--glass-shadow) overflow-hidden pointer-events-none">
                 <div className={`aurora-bg ${auroraClasses[idx]}`}></div>
                 <div className="absolute inset-0 bg-(--card-bg) backdrop-blur-3xl border border-(--border-color) rounded-3xl transition-colors duration-400"></div>
               </div>
               <div className="relative z-10 flex flex-col h-full">
-                {/* 🌟 เรียกใช้ EquipmentBlock พร้อมกับ handleEqChange ที่ถูก Memoize แล้ว 🌟 */}
                 <EquipmentBlock 
                   title={eq.title} 
                   data={equipment[eq.key]} 
@@ -78,7 +87,7 @@ export const EquipmentSection = React.memo(({ equipment, setEquipment, validatio
                   isWeapon={isWeaponItem}
                 />
               </div>
-            </div>
+            </MotionDiv>
           );
         })}
       </div>
