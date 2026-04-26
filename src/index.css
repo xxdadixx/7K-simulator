@@ -220,7 +220,10 @@
   z-index: 150;
   /* ลบ margin-top: 0.5rem; ออก เพราะเราคุมผ่าน JS/Inline style แล้ว */
   overflow: hidden;
-  background: var(--card-bg);
+  
+  /* 🌟 จุดที่ 1: เปลี่ยนจาก var(--card-bg) เป็นสีขาวที่ทึบแสงเกือบ 100% (สำหรับ Light Mode) */
+  background: rgba(255, 255, 255, 0.95);
+  
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
   border: 1px solid var(--border-color);
@@ -228,6 +231,10 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   /* ปรับ Animation ให้ขยายจากจุดกำเนิด (origin) */
   animation: dropdown-scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .glass-dropdown-menu {
+  background: rgba(28, 28, 30, 0.95);
 }
 
 /* เอฟเฟกต์เวลาเลือกรายการ */
