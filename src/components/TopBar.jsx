@@ -42,8 +42,8 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
     try {
       const dataUrl = await toPng(captureArea, {
         backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
-        pixelRatio: 2, 
-        skipFonts: false 
+        pixelRatio: 2,
+        skipFonts: false
       });
 
       const link = document.createElement('a');
@@ -97,16 +97,14 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
                   <div
                     key={p.id}
                     className="flex items-center justify-between group p-2.5 hover:bg-(--hover-bg) border border-transparent hover:border-(--border-color) rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md"
-                    onClick={() => { 
-                      // 🌟 ป้องกันการ Load Preset ทับในขณะที่กำลังพิมพ์แก้ชื่ออยู่
+                    onClick={() => {
                       if (editingId !== p.id) {
-                        onLoadPreset(p); 
-                        setShowPresetMenu(false); 
+                        onLoadPreset(p);
+                        setShowPresetMenu(false);
                       }
                     }}
                   >
                     <div className="flex items-center gap-3 min-w-0 w-full">
-
                       <div className="w-10 h-10 shrink-0 bg-black/10 dark:bg-black/30 rounded-lg border border-(--border-color) overflow-hidden flex items-center justify-center">
                         <img
                           src={`/heroes/${p.heroName}.png`}
@@ -122,31 +120,22 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
                       </div>
 
                       <div className="flex flex-col min-w-0 flex-1">
-                        {/* 🌟 จุดที่ 4: สลับการแสดงผลระหว่าง Input (แก้ไข) และ Text (ปกติ) */}
                         {editingId === p.id ? (
-                          <input 
+                          <input
                             autoFocus
-                            type="text" 
-                            value={editNameValue} 
+                            type="text"
+                            value={editNameValue}
                             onChange={(e) => setEditNameValue(e.target.value)}
-                            onBlur={() => handleEditSubmit(p.id)} // Save อัตโนมัติเมื่อคลิกที่อื่น
+                            onBlur={() => handleEditSubmit(p.id)} // Save automatically on blur
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleEditSubmit(p.id); // Save เมื่อกด Enter
-                              if (e.key === 'Escape') setEditingId(null); // ยกเลิกเมื่อกด ESC
+                              if (e.key === 'Enter') handleEditSubmit(p.id);
+                              if (e.key === 'Escape') setEditingId(null);
                             }}
                             className="text-sm font-bold bg-(--input-bg) border border-(--border-color) rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-(--accent) w-full text-(--text-main)"
-                            onClick={(e) => e.stopPropagation()} // ป้องกันปัญหาบัคการคลิกซ้อน
+                            onClick={(e) => e.stopPropagation()} // Prevent trigger onLoadPreset
                           />
                         ) : (
-                          <span 
-                            className="text-sm font-bold text-(--text-main) truncate"
-                            onDoubleClick={(e) => {
-                              e.stopPropagation();
-                              setEditingId(p.id);
-                              setEditNameValue(p.name);
-                            }}
-                            title="Double click to edit name"
-                          >
+                          <span className="text-sm font-bold text-(--text-main) truncate">
                             {p.name}
                           </span>
                         )}
@@ -154,13 +143,33 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
                       </div>
                     </div>
 
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDeletePreset(p.id, e); }}
-                      className="text-red-500 opacity-0 group-hover:opacity-100 hover:scale-110 hover:bg-red-500/10 rounded-lg transition-all p-1.5 shrink-0 ml-1"
-                      title="Delete Preset"
-                    >
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                    {/* Action Buttons (Edit & Delete) */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1">
+
+                      {/* 🌟 Add Edit Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Stop click from bubbling to the parent div
+                          setEditingId(p.id);
+                          setEditNameValue(p.name);
+                        }}
+                        className="text-blue-500 hover:scale-110 hover:bg-blue-500/10 rounded-lg transition-all p-1.5"
+                        title="Edit Preset Name"
+                      >
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDeletePreset(p.id, e); }}
+                        className="text-red-500 hover:scale-110 hover:bg-red-500/10 rounded-lg transition-all p-1.5"
+                        title="Delete Preset"
+                      >
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
