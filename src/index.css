@@ -178,6 +178,11 @@
     filter: blur(40px);
     background-size: 200% 200%;
     pointer-events: none;
+    
+    /* 🌟 เพิ่มโค้ด 3 บรรทัดนี้เพื่อแก้ปัญหากะพริบตอน Scroll 🌟 */
+    transform: translateZ(0); /* Force GPU Acceleration */
+    backface-visibility: hidden; /* Prevent clipping/flickering */
+    will-change: transform, background-position; /* Optimize render performance */
   }
 
   /* แบบที่ 1: สีเขียว/ฟ้า, ช้าๆ, ลื่นไหล */
