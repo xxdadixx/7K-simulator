@@ -1,12 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 
-// 🌟 OPTIMIZATION: Memoize TopBar component
-export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDeletePreset, isDarkMode, toggleDarkMode, activeHeroName }) => {
+// 🌟 จุดที่ 1: อย่าลืมเพิ่ม onUpdatePresetName ใน Props นะครับ
+export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDeletePreset, onUpdatePresetName, isDarkMode, toggleDarkMode, activeHeroName }) => {
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [presetNameInput, setPresetNameInput] = useState('');
   const presetMenuRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // 🌟 จุดที่ 2: State สำหรับควบคุมการแก้ไขชื่อ Preset
+  const [editingId, setEditingId] = useState(null);
+  const [editNameValue, setEditNameValue] = useState('');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -22,6 +26,14 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
     setShowPresetMenu(false);
   };
 
+  // 🌟 จุดที่ 3: ฟังก์ชันบันทึกชื่อใหม่เมื่อทำการ Edit เสร็จ
+  const handleEditSubmit = (id) => {
+    if (onUpdatePresetName) {
+      onUpdatePresetName(id, editNameValue);
+    }
+    setEditingId(null); // ออกจากโหมดแก้ไข
+  };
+
   const handleExportImage = async () => {
     const captureArea = document.getElementById('build-capture-area');
     if (!captureArea) return;
@@ -30,8 +42,8 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
     try {
       const dataUrl = await toPng(captureArea, {
         backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
-        pixelRatio: 2, // ความคมชัด 2 เท่า (เหมือน scale: 2 ของ html2canvas)
-        skipFonts: false // ดึง Font มาด้วย
+        pixelRatio: 2, 
+        skipFonts: false 
       });
 
       const link = document.createElement('a');
@@ -85,16 +97,20 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
                   <div
                     key={p.id}
                     className="flex items-center justify-between group p-2.5 hover:bg-(--hover-bg) border border-transparent hover:border-(--border-color) rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md"
-                    onClick={() => { onLoadPreset(p); setShowPresetMenu(false); }}
+                    onClick={() => { 
+                      // 🌟 ป้องกันการ Load Preset ทับในขณะที่กำลังพิมพ์แก้ชื่ออยู่
+                      if (editingId !== p.id) {
+                        onLoadPreset(p); 
+                        setShowPresetMenu(false); 
+                      }
+                    }}
                   >
-                    {/* 🌟 ปรับ Layout ของไอเทมให้แสดงรูปภาพฮีโร่ 🌟 */}
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0 w-full">
 
                       <div className="w-10 h-10 shrink-0 bg-black/10 dark:bg-black/30 rounded-lg border border-(--border-color) overflow-hidden flex items-center justify-center">
                         <img
                           src={`/heroes/${p.heroName}.png`}
                           alt={p.heroName}
-                          loading="lazy"
                           decoding="async"
                           className="w-full h-full object-contain p-0.5"
                           onError={(e) => {
@@ -105,15 +121,42 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
                         />
                       </div>
 
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-bold text-(--text-main) truncate">{p.name}</span>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        {/* 🌟 จุดที่ 4: สลับการแสดงผลระหว่าง Input (แก้ไข) และ Text (ปกติ) */}
+                        {editingId === p.id ? (
+                          <input 
+                            autoFocus
+                            type="text" 
+                            value={editNameValue} 
+                            onChange={(e) => setEditNameValue(e.target.value)}
+                            onBlur={() => handleEditSubmit(p.id)} // Save อัตโนมัติเมื่อคลิกที่อื่น
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleEditSubmit(p.id); // Save เมื่อกด Enter
+                              if (e.key === 'Escape') setEditingId(null); // ยกเลิกเมื่อกด ESC
+                            }}
+                            className="text-sm font-bold bg-(--input-bg) border border-(--border-color) rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-(--accent) w-full text-(--text-main)"
+                            onClick={(e) => e.stopPropagation()} // ป้องกันปัญหาบัคการคลิกซ้อน
+                          />
+                        ) : (
+                          <span 
+                            className="text-sm font-bold text-(--text-main) truncate"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              setEditingId(p.id);
+                              setEditNameValue(p.name);
+                            }}
+                            title="Double click to edit name"
+                          >
+                            {p.name}
+                          </span>
+                        )}
                         <span className="text-[10px] text-(--text-muted) uppercase tracking-wider font-semibold truncate">Hero: {p.heroName}</span>
                       </div>
                     </div>
 
                     <button
                       onClick={(e) => { e.stopPropagation(); onDeletePreset(p.id, e); }}
-                      className="text-red-500 opacity-0 group-hover:opacity-100 hover:scale-110 hover:bg-red-500/10 rounded-lg transition-all p-1.5 shrink-0"
+                      className="text-red-500 opacity-0 group-hover:opacity-100 hover:scale-110 hover:bg-red-500/10 rounded-lg transition-all p-1.5 shrink-0 ml-1"
                       title="Delete Preset"
                     >
                       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>

@@ -99,6 +99,11 @@ export default function App() {
     }
   }, []);
 
+  const handleUpdatePresetName = useCallback((id, newName) => {
+    if (!newName.trim()) return;
+    setPresets(prev => prev.map(p => p.id === id ? { ...p, name: newName.trim() } : p));
+  }, []);
+
   const handlePotentialChange = useCallback((statKey, val) => {
     setPotentials(prev => ({ ...prev, [statKey]: Math.max(0, Math.min(30, val)) }));
   }, []);
@@ -128,14 +133,15 @@ export default function App() {
       <div className="crt-overlay"></div>
 
       <div className="max-w-[1400px] mx-auto space-y-8 relative">
-        <TopBar
+      <TopBar
           presets={presets}
           onSavePreset={handleSavePreset}
           onLoadPreset={handleLoadPreset}
           onDeletePreset={handleDeletePreset}
+          onUpdatePresetName={handleUpdatePresetName}
           isDarkMode={isDarkMode}
           toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-          activeHeroName={activeHero?.name !== 'Unselected' ? activeHero?.name : 'Setup'} // ส่งชื่อฮีโร่ไปตั้งชื่อไฟล์
+          activeHeroName={activeHero?.name !== 'Unselected' ? activeHero?.name : 'Setup'}
         />
         <div id="build-capture-area" className="p-2 sm:p-4 rounded-3xl space-y-8">
           <div className="flex flex-col xl:flex-row gap-8">
