@@ -28,7 +28,7 @@ export const GlassSelect = React.memo(({
   const selectedOption = options.find(opt => String(opt.value) === String(value));
 
   return (
-    <div className={`relative w-full ${className} ${isOpen ? 'z-[100]' : 'z-10'}`} ref={containerRef}>
+    <div className={`relative w-full ${className} ${isOpen ? 'z-100' : 'z-10'}`} ref={containerRef}>
       <button 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -44,7 +44,7 @@ export const GlassSelect = React.memo(({
       </button>
 
       {isOpen && (
-        <div className={`glass-dropdown-menu absolute w-full left-0 z-[200] ${dropdownPosition === 'up' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'}`}>
+        <div className={`glass-dropdown-menu absolute w-full left-0 z-200 ${dropdownPosition === 'up' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'}`}>
           <div className="max-h-48 overflow-y-auto custom-scrollbar py-1">
             {options.map((opt) => (
               <div

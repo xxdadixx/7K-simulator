@@ -37,11 +37,11 @@ export const BaseStatsPanel = React.memo(({
                 </div>
                 <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                   <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Base</span>
-                  <span className={`arcade-value-mini ${isDarkMode ? '' : '!text-slate-700 ![text-shadow:none]'}`}>{baseValue?.toLocaleString() || 0}</span>
+                  <span className={`arcade-value-mini ${isDarkMode ? '' : 'text-slate-700! text-shadow-none!'}`}>{baseValue?.toLocaleString() || 0}</span>
                 </div>
                 <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
                   <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Trans</span>
-                  <span key={transBonus} className={`animate-value-change transition-colors ${isDarkMode ? 'arcade-value-bonus text-[#00bfff]' : 'text-blue-700 font-bold text-base'}`}>{isSpd ? '-' : `+${transBonus.toLocaleString()}`}</span>
+                  <span key={transBonus} className={`animate-value-change transition-colors arcade-value-bonus ${isDarkMode ? 'text-[#00bfff]' : 'text-blue-700 text-shadow-none!'}`}>{isSpd ? '-' : `+${transBonus.toLocaleString()}`}</span>
                 </div>
                 
                 <div className="w-full md:w-1/5 flex justify-between md:justify-center items-center">
@@ -80,7 +80,7 @@ export const BaseStatsPanel = React.memo(({
                       type="text" 
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className={`flex-1 w-full h-full text-center bg-(--input-bg) focus:bg-(--card-bg) focus:outline-none hide-spin-button !text-[13px] sm:!text-[15px] transition-colors ${isDarkMode ? 'arcade-value-mini' : 'text-slate-800 font-bold'}`} 
+                      className={`flex-1 w-full h-full text-center bg-(--input-bg) focus:bg-(--card-bg) focus:outline-none hide-spin-button text-[13px]! sm:text-[15px]! transition-colors ${isDarkMode ? 'arcade-value-mini' : 'text-slate-800 font-bold'}`} 
                       value={isSpd ? 0 : (potentials[statKey] === 0 ? '' : potentials[statKey])} 
                       disabled={isSpd} 
                       placeholder="0" 
@@ -131,7 +131,7 @@ export const BaseStatsPanel = React.memo(({
 
                 <div className="w-full md:w-[15%] flex justify-between md:justify-end items-center pr-2">
                   <span className="md:hidden text-[11px] text-(--text-muted) uppercase">Poten Add</span>
-                  <span key={potenValue} className={`animate-value-change transition-colors ${isDarkMode ? 'arcade-value-bonus text-[#ffd700]' : 'text-amber-700 font-bold text-base'}`}>{isSpd ? '-' : `+${potenValue.toLocaleString()}`}</span>
+                  <span key={potenValue} className={`animate-value-change transition-colors arcade-value-bonus ${isDarkMode ? 'text-[#ffd700]' : 'text-amber-700 text-shadow-none!'}`}>{isSpd ? '-' : `+${potenValue.toLocaleString()}`}</span>
                 </div>
               </div>
             );

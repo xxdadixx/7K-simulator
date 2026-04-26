@@ -33,7 +33,7 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
         pixelRatio: 2, // ความคมชัด 2 เท่า (เหมือน scale: 2 ของ html2canvas)
         skipFonts: false // ดึง Font มาด้วย
       });
-      
+
       const link = document.createElement('a');
       link.download = `7K_Build_${activeHeroName || 'Setup'}.png`;
       link.href = dataUrl;
@@ -47,12 +47,12 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
   };
 
   return (
-    <div className="sticky top-4 md:top-6 z-120 flex justify-end gap-3 w-full pointer-events-none mb-8">
+    <div className="sticky top-4 md:top-6 z-120 flex flex-wrap justify-center sm:justify-end gap-2 sm:gap-3 w-full pointer-events-none mb-6 sm:mb-8">
       <div className="pointer-events-auto">
         <button
           onClick={handleExportImage}
           disabled={isExporting}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-(--accent) text-white shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-bold disabled:opacity-50"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-(--accent) text-white shadow-md hover:shadow-lg hover:scale-105 transition-all text-xs sm:text-sm font-bold disabled:opacity-50"
         >
           {isExporting ? (
             <span className="animate-pulse">📸 Capturing...</span>
@@ -65,7 +65,7 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
         </button>
       </div>
       <div className="relative pointer-events-auto" ref={presetMenuRef}>
-        <button onClick={() => setShowPresetMenu(!showPresetMenu)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-(--card-bg) backdrop-blur-xl border border-(--border-color) shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium text-(--text-main)">
+        <button onClick={() => setShowPresetMenu(!showPresetMenu)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-(--card-bg) backdrop-blur-xl border border-(--border-color) shadow-md hover:shadow-lg hover:scale-105 transition-all text-xs sm:text-sm font-medium text-(--text-main)">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
           Presets
         </button>
@@ -131,7 +131,7 @@ export const TopBar = React.memo(({ presets, onSavePreset, onLoadPreset, onDelet
         )}
       </div>
 
-      <button onClick={toggleDarkMode} className="flex items-center gap-2 px-4 py-2 rounded-full bg-(--card-bg) backdrop-blur-xl border border-(--border-color) shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm font-medium text-(--text-main) pointer-events-auto">
+      <button onClick={toggleDarkMode} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-(--card-bg) backdrop-blur-xl border border-(--border-color) shadow-md hover:shadow-lg hover:scale-105 transition-all text-xs sm:text-sm font-medium text-(--text-main) pointer-events-auto">
         {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
       </button>
     </div>
